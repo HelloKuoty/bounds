@@ -18,7 +18,7 @@ const UI_TEXTS := [
 	"心力已尽 —— 切得太多了",
 	"选中同属一束的几样,再分出去", "这些还没成束,无从拆起", "得给原束留一些",
 	"誊本只对筹码;请先选一枚筹码", "再选一样在目标区域里的东西", "共享请先选一样活物",
-	"再走一程", "灰的动作 = 此刻用不上",
+	"再走一程", "灰的动作 = 此刻用不上", "形色相同 · 本是一物",
 ]
 const PALETTE := [
 	# Warm aged-map tones (sepia / ochre / terracotta / khaki / dusty-rose / moss),
@@ -27,6 +27,14 @@ const PALETTE := [
 ]
 const TINT_UNSTABLE := Color(1.0, 0.5, 0.5)
 const TINT_CORRUPT := Color(0.55, 0.42, 0.55)
+# A piece's hidden essence (其 真意), shown as an abstract badge — colour + shape,
+# never the word. Same badge = the same thing; same name but a different badge = a
+# name that secretly means two things (the clash). Read the board without reading
+# the glyphs. Shape is the colour-blind-safe channel. (阿May / 周棠, iter-08)
+const MEANING_COLORS := [
+	Color("4fc3b0"), Color("e0a85a"), Color("e07a8f"), Color("8f9ae0"), Color("9fcf6a"),
+]
+const MEANING_SHAPES := ["circle", "square", "diamond", "triangle", "cross", "ring"]
 
 # Contextual guidance — speaks only in the world's own terms, never the concepts.
 const G_OVERLOAD_SELECT := "红光处:两样东西都唤作「%s」,土地却认得它们并非一物。先点选其中一样。"
@@ -58,6 +66,8 @@ var _selected: Dictionary = {}       # piece_id -> true
 var _piece_widgets: Dictionary = {}  # piece_id -> Button
 var _ordered_pieces: Array = []      # stable order, for number-key selection
 var _verb_btns: Dictionary = {}      # verb -> Button (lit only when applicable)
+var _meaning_index: Dictionary = {}  # meaning -> stable int (drives badge colour/shape)
+var _icon_cache: Dictionary = {}     # index -> ImageTexture (one badge per essence)
 var _title: Label
 var _intro: Label
 var _narration: Label
@@ -210,6 +220,10 @@ func _build_hud() -> Control:
 	legend.add_theme_font_size_override("font_size", 12)
 	hud.add_child(legend)
 
+	var legend2 := _label("形色相同 · 本是一物", Color("8c8266"))
+	legend2.add_theme_font_size_override("font_size", 12)
+	hud.add_child(legend2)
+
 	_hint = Label.new()
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint.add_theme_color_override("font_color", Color("c8b878"))
@@ -224,6 +238,7 @@ func _rebuild() -> void:
 	_ordered_pieces.clear()
 	for c in _regions_box.get_children():
 		c.free()
+	_index_meanings()
 
 	var by_region: Dictionary = {}
 	for pid in board.pieces:
@@ -288,6 +303,9 @@ func _make_piece_button(pid: String) -> Button:
 	var ring := _piece_box(Color("3a2e1c"), Color("f0d89a"), 3)
 	btn.add_theme_stylebox_override("pressed", ring)
 	btn.add_theme_stylebox_override("focus", ring)
+	btn.icon = _meaning_icon(p["meaning"])  # the essence badge — read the board, not the glyphs
+	btn.add_theme_constant_override("h_separation", 5)
+	btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
 	btn.toggled.connect(_on_piece_toggled.bind(pid))
 	return btn
 
@@ -672,3 +690,63 @@ func _make_vignette() -> GradientTexture2D:
 	tex.width = 256
 	tex.height = 256
 	return tex
+
+
+## Assign each distinct essence a stable index (sorted, so badges don't shuffle
+## between rebuilds). Copies share their source's essence, so the set is stable.
+func _index_meanings() -> void:
+	var seen := {}
+	for pid in board.pieces:
+		seen[board.pieces[pid]["meaning"]] = true
+	var ms := seen.keys()
+	ms.sort()
+	_meaning_index.clear()
+	for i in ms.size():
+		_meaning_index[ms[i]] = i
+
+
+func _meaning_icon(meaning: String) -> Texture2D:
+	var idx: int = _meaning_index.get(meaning, 0)
+	if _icon_cache.has(idx):
+		return _icon_cache[idx]
+	var color: Color = MEANING_COLORS[idx % MEANING_COLORS.size()]
+	var shape: String = MEANING_SHAPES[idx % MEANING_SHAPES.size()]
+	var tex := _draw_shape(color, shape)
+	_icon_cache[idx] = tex
+	return tex
+
+
+## Rasterise a small filled shape (no asset files — ships on the web). The shape
+## carries essence for colour-blind play; the colour for everyone else.
+func _draw_shape(color: Color, shape: String) -> ImageTexture:
+	var s := 20
+	var img := Image.create(s, s, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var cx := s / 2.0 - 0.5
+	var cy := s / 2.0 - 0.5
+	var r := s * 0.42
+	for y in s:
+		for x in s:
+			var dx: float = x - cx
+			var dy: float = y - cy
+			var inside := false
+			match shape:
+				"circle":
+					inside = dx * dx + dy * dy <= r * r
+				"square":
+					inside = absf(dx) <= r * 0.9 and absf(dy) <= r * 0.9
+				"diamond":
+					inside = absf(dx) + absf(dy) <= r * 1.15
+				"triangle":
+					var t := (dy + r) / (2.0 * r)
+					inside = dy <= r and dy >= -r and absf(dx) <= r * t
+				"cross":
+					inside = (absf(dx) <= r * 0.34 and absf(dy) <= r) or (absf(dy) <= r * 0.34 and absf(dx) <= r)
+				"ring":
+					var d2 := dx * dx + dy * dy
+					inside = d2 <= r * r and d2 >= (r * 0.55) * (r * 0.55)
+				_:
+					inside = dx * dx + dy * dy <= r * r
+			if inside:
+				img.set_pixel(x, y, color)
+	return ImageTexture.create_from_image(img)

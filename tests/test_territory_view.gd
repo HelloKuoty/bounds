@@ -172,3 +172,25 @@ func test_selected_piece_wears_a_focus_ring() -> void:
 	assert_true(sb is StyleBoxFlat, "selected piece has a custom pressed box")
 	assert_true((sb as StyleBoxFlat).get_border_width(SIDE_TOP) >= 3, "the ring is thick enough to read without colour")
 	view.free()
+
+
+func test_pieces_carry_an_essence_badge() -> void:
+	# 阿May(iter-08): each piece shows an abstract essence badge, so the board can
+	# be read at a glance without reading the glyphs.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	assert_true(view._piece_widgets["ledger"].icon != null, "a piece carries an essence badge")
+	view.free()
+
+
+func test_same_name_different_essence_look_different() -> void:
+	# The core clash, made legible: ledger & manifest share the 账 glyph but mean
+	# different things — their badges must differ (colour-blind: also by shape).
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	assert_true(view._piece_widgets["ledger"].icon != view._piece_widgets["manifest"].icon, "same name, different essence → different badge")
+	view.free()
