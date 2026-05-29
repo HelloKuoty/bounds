@@ -3,13 +3,14 @@ class_name BoundsMain extends Node
 ## node, solve its territory (or pass a waypoint), return to the map, on to the
 ## heartland. Narration bookends and punctuates the journey.
 
-const UI_TEXTS := ["界", "启程", "继续"]
+const UI_TEXTS := ["界", "启程", "继续", "心法", "试炼之地 · 择一而入,深浅由你。", "浅", "中", "深"]
 
 var _view: TerritoryView
 var _map: RunMapView
 var _screen: Control       # generic centered message overlay
 var _pending: Callable
 var _narr_i := 0
+var _trial_depth := 0  # chosen 心法 for the current trial (0 = not yet chosen this visit)
 
 
 func _ready() -> void:
@@ -49,12 +50,17 @@ func _enter_node(node_id: String) -> void:
 func _open_territory(node_id: String) -> void:
 	_clear_screens()
 	var tid: String = RunManager.node(node_id)["territory_id"]
-	var t: TerritoryData
 	if TerritoryDatabase.has_territory(tid):
-		t = TerritoryDatabase.get_territory(tid)
+		_open_board(node_id, TerritoryDatabase.get_territory(tid))
+	elif _trial_depth > 0:
+		# a seeded trial of the chosen 心法 — fresh & solvable, stable on retry this visit
+		_open_board(node_id, TerritoryGen.make((hash(node_id) ^ GameState.run_seed) + _trial_depth, _trial_depth))
 	else:
-		# a seeded trial — a fresh, solvable board each run (stable on retry within a run)
-		t = TerritoryGen.make(hash(node_id) ^ GameState.run_seed)
+		_show_trial_choice(node_id)  # first pick your 心法 (how deep a challenge)
+
+
+func _open_board(node_id: String, t: TerritoryData) -> void:
+	_clear_screens()
 	var board := BoardState.new()
 	board.load_territory(t)
 	_view = preload("res://scenes/territory/TerritoryView.tscn").instantiate()
@@ -66,7 +72,54 @@ func _open_territory(node_id: String) -> void:
 	print("[Main] %s" % t.name)
 
 
+## 试炼之地: pick your 心法 — how deep a challenge. Each maps to a generator depth
+## (1/2/3 troubles), always solvable by construction. A real, safe roguelike choice.
+func _show_trial_choice(node_id: String) -> void:
+	_clear_screens()
+	_screen = Control.new()
+	_screen.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_screen)
+	var bg := ColorRect.new()
+	bg.color = Color("0d0e13")
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_screen.add_child(bg)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_screen.add_child(center)
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 22)
+	vb.custom_minimum_size = Vector2(600, 0)
+	center.add_child(vb)
+	var t := Label.new()
+	t.text = "心法"
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	t.add_theme_font_size_override("font_size", 56)
+	vb.add_child(t)
+	var b := Label.new()
+	b.text = "试炼之地 · 择一而入,深浅由你。"
+	b.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.add_theme_color_override("font_color", Color("aab0c0"))
+	vb.add_child(b)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 16)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vb.add_child(row)
+	for opt in [{"t": "浅", "d": 1}, {"t": "中", "d": 2}, {"t": "深", "d": 3}]:
+		var btn := Button.new()
+		btn.text = opt["t"]
+		btn.custom_minimum_size = Vector2(120, 56)
+		btn.pressed.connect(_on_trial_pick.bind(int(opt["d"]), node_id))
+		row.add_child(btn)
+
+
+func _on_trial_pick(depth: int, node_id: String) -> void:
+	_trial_depth = depth
+	_open_territory(node_id)
+
+
 func _on_territory_cleared(node_id: String) -> void:
+	_trial_depth = 0  # leaving this territory; a future trial picks its 心法 anew
 	if node_id == RunManager.boss_id:
 		_view.show_finale(Narrative.ENDING)
 	else:

@@ -6,13 +6,14 @@ extends TestHelpers
 const FORBIDDEN := ["实体", "聚合", "限界上下文", "防腐层", "领域事件", "技术债", "重构", "entity", "aggregate", "refactor", "repository", "database"]
 
 
-func test_every_seed_builds_a_solvable_board() -> void:
-	for seed in range(60):
-		var t := TerritoryGen.make(seed)
-		var board := BoardState.new()
-		board.load_territory(t)
-		assert_true(board.instabilities().size() >= 1, "seed %d has something to solve" % seed)
-		assert_true(_greedy_solve(board), "seed %d is solvable within its care budget" % seed)
+func test_every_seed_and_depth_builds_a_solvable_board() -> void:
+	for depth in [1, 2, 3]:
+		for seed in range(25):
+			var t := TerritoryGen.make(seed, depth)
+			var board := BoardState.new()
+			board.load_territory(t)
+			assert_true(board.instabilities().size() >= 1, "心法 d%d seed %d has something to solve" % [depth, seed])
+			assert_true(_greedy_solve(board), "心法 d%d seed %d solvable within budget" % [depth, seed])
 
 
 func test_same_seed_reproduces_the_same_board() -> void:

@@ -17,13 +17,14 @@ const GLYPHS := [
 const DIRS := ["东", "西", "南", "北", "左", "右", "前", "后"]
 
 
-static func make(seed: int) -> TerritoryData:
-	return TerritoryData.from_dict(make_dict(seed))
+static func make(seed: int, depth: int = 2) -> TerritoryData:
+	return TerritoryData.from_dict(make_dict(seed, depth))
 
 
 ## A territories.json-shaped dict. Glyphs are drawn distinct across the board, so
 ## the ONLY same-glyph repeats are the intended clash pairs — no stray instability.
-static func make_dict(seed: int) -> Dictionary:
+static func make_dict(seed: int, depth: int = 2) -> Dictionary:
+	depth = clampi(depth, 1, 3)  # 心法:浅 / 中 / 深
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	var glyphs := GLYPHS.duplicate()
@@ -32,7 +33,7 @@ static func make_dict(seed: int) -> Dictionary:
 	var pieces: Array = []
 	var clusters: Array = []
 
-	var pairs := 1 + (rng.randi() % 2)  # 1–2 name-clashes
+	var pairs := depth  # 浅/中/深 → 1/2/3 name-clashes
 	for p in range(pairs):
 		var gl: String = glyphs[gi]
 		gi += 1
@@ -42,8 +43,8 @@ static func make_dict(seed: int) -> Dictionary:
 		pieces.append({"id": "p%d_b" % p, "label": "%s边的%s" % [dirs[1], gl], "glyph": gl, "meaning": "clash%d_b" % p, "kind": "living"})
 
 	var troubles := pairs
-	if rng.randi() % 2 == 0:  # sometimes a scattered kin-cluster
-		var k := 2 + (rng.randi() % 2)  # 2–3 kin
+	if depth >= 2:  # 中 / 深 add a scattered kin-cluster
+		var k := depth  # 2–3 kin
 		var members: Array = []
 		for m in range(k):
 			var gl2: String = glyphs[gi]
