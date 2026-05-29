@@ -37,7 +37,17 @@ func _player_facing_strings() -> Array:
 		TerritoryView.G_CLASH_SELECT, TerritoryView.G_CLASH_ACT,
 		TerritoryView.G_SETTLED, TerritoryView.G_CLEARED,
 		TerritoryView.G_NUDGE_OVERLOAD, TerritoryView.G_NUDGE_CLUSTER, TerritoryView.G_NUDGE_CLASH,
+		TerritoryView.G_BLOAT, TerritoryView.G_BLOAT_NUDGE,
+		TerritoryView.G_SHORTAGE, TerritoryView.G_SHORTAGE_NUDGE,
+		TerritoryView.G_EXPOSED, TerritoryView.G_EXPOSED_NUDGE,
 	]:
+		out.append(s)
+	# Narrative prose + the boot screen's own words.
+	for s in Narrative.all_strings():
+		out.append(s)
+	for s in BoundsMain.UI_TEXTS:
+		out.append(s)
+	for s in RunMapView.UI_TEXTS:
 		out.append(s)
 	return out
 

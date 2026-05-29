@@ -84,6 +84,45 @@ func _auto_solve(board: BoardState) -> bool:
 				if lk.is_empty():
 					return false
 				board.place_translator(board.region_of(lk["a"]), board.region_of(lk["b"]))
+			"bloated_bundle":
+				var bid: int = inst["bundle"]
+				var members: Array = board.bundles[bid]["members"]
+				var guardian: String = board.bundles[bid]["guardian"]
+				var excess: int = members.size() - BoardState.MAX_BUNDLE
+				var to_move: Array = []
+				for m in members:
+					if m == guardian:
+						continue
+					if to_move.size() >= excess:
+						break
+					to_move.append(m)
+				if to_move.is_empty():
+					return false
+				board.split_bundle(bid, to_move)
+			"shortage":
+				var d := _demand(board, inst["demand"])
+				if d.is_empty():
+					return false
+				var r: int = board.region_of(d["anchor"])
+				var src := ""
+				for pid in board.pieces:
+					var p: Dictionary = board.pieces[pid]
+					if p["kind"] == "token" and p["glyph"] == d["glyph"] and p["meaning"] == d["meaning"] and not p.get("stale", false):
+						src = pid
+						break
+				if src != "":
+					board.copy_token(src, r)  # tokens: just copy
+				else:
+					# the need is for a living thing — can't copy; share it (at a cost)
+					var living := ""
+					for pid in board.pieces:
+						var p2: Dictionary = board.pieces[pid]
+						if p2["glyph"] == d["glyph"] and p2["meaning"] == d["meaning"]:
+							living = pid
+							break
+					if living == "":
+						return false
+					board.share(living, r)
 			_:
 				return false
 	return board.cleared
@@ -100,4 +139,11 @@ func _link(board: BoardState, lid: String) -> Dictionary:
 	for l in board.links:
 		if l["id"] == lid:
 			return l
+	return {}
+
+
+func _demand(board: BoardState, did: String) -> Dictionary:
+	for d in board.demands:
+		if d["id"] == did:
+			return d
 	return {}

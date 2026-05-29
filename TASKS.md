@@ -51,10 +51,22 @@
 
 ## Phase 5: 打磨
 
-- [ ] **T5.1** 难度曲线 / 数值平衡
+- [ ] **T5.1** 难度曲线 / 数值平衡(需真人 playtest)
 - [ ] **T5.2** 异常路径(连点、ESC、窗口尺寸)不崩
-- [ ] **T5.3** `QUALITY_BAR.md` 逐项打勾
-- [ ] **T5.4** README + 操作说明
+- [x] **T5.3** `QUALITY_BAR.md` 客观可验证项已勾(其余 playtest/音频/美术门槛)
+- [x] **T5.4** README + 操作说明 + 在线试玩链接
+
+## Phase 6: 六向内容扩充(全部已实现并测试)
+
+> 四个新机制都接入了棋盘 UI(按钮 + 引导 + 着色),并各有独立测试。
+
+- [x] **② 拆束**:束超 `MAX_BUNDLE` 即臃肿失稳;`split_bundle` 拆小(test_split)
+- [x] **① 誊本 + 走味**:`copy_token` 仅对筹码;副本 `FRESH_TURNS` 后走味;`shortage` 失稳(test_copy)
+- [x] **④ 共井**:活物 `share` 跨区,记一次性债 + 每回合渗血;精英关 shared_well(test_shared)
+- [x] **③ 空间化陈腐**:`spreading` 关卡每回合腐蚀同区,`exposed` 失稳,用界遏制(test_rot_spread)
+- [x] **⑤ 行省地图**:`RunMapView` 节点图 + 可达性 + Main 地图驱动路由(test_run_map_view)
+- [x] **⑥ 叙事**:`Narrative`(前言/四章/旁白/结局),开场+关间+结局接入 Main(test_narrative,过禁词)
+- 关卡库扩至 13(7 普通 + 1 精英 + 1 蔓延 + Boss + 教学序列);失稳类型扩至 6 种
 
 ---
 

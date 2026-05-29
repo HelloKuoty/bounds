@@ -9,17 +9,21 @@ class_name TerritoryView extends Control
 ## ALL player-visible text is listed in UI_TEXTS and scanned by test_no_jargon.
 
 const UI_TEXTS := [
-	"画界(分出所选)", "成束(所选 · 首个为守门人)", "立译者石(连接两片所选区域)",
+	"画界(分出所选)", "成束(所选 · 首个为守门人)", "拆束(把所选从一束分出)",
+	"立译者石(连接两片所选区域)", "誊本(把筹码誊往另一区)", "共享(把活物借给另一区)",
 	"结束回合", "秩序", "陈腐", "回合", "心力",
 	"秩序重临 — 此地已净", "土地塌陷",
 	"先选中要分出的棋子", "先选中要收束的棋子", "需选中跨越两片区域的棋子",
 	"旷野", "继续 →", "重试", "四境皆清 · 国土重归秩序",
 	"心力已尽 —— 切得太多了",
+	"选中同属一束的几样,再分出去", "这些还没成束,无从拆起", "得给原束留一些",
+	"誊本只对筹码;请先选一枚筹码", "再选一样在目标区域里的东西", "共享请先选一样活物",
 ]
 const PALETTE := [
 	Color("23303f"), Color("3a2f23"), Color("23402f"), Color("3a2336"), Color("2f2f44"), Color("403a23"),
 ]
 const TINT_UNSTABLE := Color(1.0, 0.5, 0.5)
+const TINT_CORRUPT := Color(0.55, 0.42, 0.55)
 
 # Contextual guidance — speaks only in the world's own terms, never the concepts.
 const G_OVERLOAD_SELECT := "红光处:两样东西都唤作「%s」,土地却认得它们并非一物。先点选其中一样。"
@@ -34,6 +38,12 @@ const G_CLEARED := "此地已净。"
 const G_NUDGE_OVERLOAD := "「%s」处,红光仍在相争。"
 const G_NUDGE_CLUSTER := "几样泛红之物,本该是一体。"
 const G_NUDGE_CLASH := "界的两边,还差一座通路。"
+const G_BLOAT := "一束揽得太多了。从中点选几样,按「拆束」分出去,各有所守。"
+const G_BLOAT_NUDGE := "一束揽得太多,分一些出去。"
+const G_SHORTAGE := "此地缺一样东西。把别处的筹码点上,再点此地一样,按「誊本」誊来;若是活物,则用「共享」。"
+const G_SHORTAGE_NUDGE := "此地还缺一样东西。"
+const G_EXPOSED := "红斑要漫过来了!选中近旁的好东西,按「画界」把它们围到界外。"
+const G_EXPOSED_NUDGE := "红斑近了 —— 把好东西围走。"
 
 signal continue_pressed
 signal retry_pressed
@@ -44,6 +54,8 @@ var _selected: Dictionary = {}       # piece_id -> true
 var _piece_widgets: Dictionary = {}  # piece_id -> Button
 var _title: Label
 var _intro: Label
+var _narration: Label
+var _narration_text := ""
 var _guide: Label
 var _regions_box: HFlowContainer
 var _concord_bar: ProgressBar
@@ -57,9 +69,10 @@ var _overlay_mode := "clear"
 var _built := false
 
 
-func setup(b: BoardState, p_taught: Dictionary = {}) -> void:
+func setup(b: BoardState, p_taught: Dictionary = {}, p_narration: String = "") -> void:
 	board = b
 	taught = p_taught
+	_narration_text = p_narration
 	if not _built:
 		_build_chrome()
 		_built = true
@@ -98,6 +111,11 @@ func _build_chrome() -> void:
 	_intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_intro.add_theme_color_override("font_color", Color("9aa0b0"))
 	col.add_child(_intro)
+
+	_narration = Label.new()
+	_narration.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_narration.add_theme_color_override("font_color", Color("6a7080"))
+	col.add_child(_narration)
 
 	_guide = Label.new()
 	_guide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -154,7 +172,10 @@ func _build_hud() -> Control:
 
 	hud.add_child(_button("画界(分出所选)", _on_wall))
 	hud.add_child(_button("成束(所选 · 首个为守门人)", _on_bundle))
+	hud.add_child(_button("拆束(把所选从一束分出)", _on_split))
 	hud.add_child(_button("立译者石(连接两片所选区域)", _on_translator))
+	hud.add_child(_button("誊本(把筹码誊往另一区)", _on_copy))
+	hud.add_child(_button("共享(把活物借给另一区)", _on_share))
 	hud.add_child(_button("结束回合", _on_end_turn))
 
 	_hint = Label.new()
@@ -276,6 +297,74 @@ func _on_translator() -> void:
 	_rebuild()
 
 
+func _on_split() -> void:
+	var ids := _selected.keys()
+	if ids.is_empty():
+		_set_hint("选中同属一束的几样,再分出去")
+		return
+	var bid := board.bundle_of(ids[0])
+	if bid == -1:
+		_set_hint("这些还没成束,无从拆起")
+		return
+	for pid in ids:
+		if board.bundle_of(pid) != bid:
+			_set_hint("选中同属一束的几样,再分出去")
+			return
+	if ids.size() >= board.bundles[bid]["members"].size():
+		_set_hint("得给原束留一些")
+		return
+	board.split_bundle(bid, ids)
+	taught["split"] = true
+	_set_hint("")
+	_rebuild()
+
+
+func _on_copy() -> void:
+	var token := ""
+	for pid in _selected.keys():
+		if board.pieces[pid]["kind"] == "token":
+			token = pid
+			break
+	if token == "":
+		_set_hint("誊本只对筹码;请先选一枚筹码")
+		return
+	var target := -1
+	for pid in _selected.keys():
+		if board.region_of(pid) != board.region_of(token):
+			target = board.region_of(pid)
+			break
+	if target == -1:
+		_set_hint("再选一样在目标区域里的东西")
+		return
+	board.copy_token(token, target)
+	taught["copy"] = true
+	_set_hint("")
+	_rebuild()
+
+
+func _on_share() -> void:
+	var src := ""
+	for pid in _selected.keys():
+		if board.pieces[pid]["kind"] == "living":
+			src = pid
+			break
+	if src == "":
+		_set_hint("共享请先选一样活物")
+		return
+	var target := -1
+	for pid in _selected.keys():
+		if board.region_of(pid) != board.region_of(src):
+			target = board.region_of(pid)
+			break
+	if target == -1:
+		_set_hint("再选一样在目标区域里的东西")
+		return
+	board.share(src, target)
+	taught["share"] = true
+	_set_hint("")
+	_rebuild()
+
+
 func _on_end_turn() -> void:
 	board.advance_turn()
 	_rebuild()
@@ -301,6 +390,20 @@ func _highlight_instabilities() -> void:
 					if l["id"] == inst["link"]:
 						_tint(l["a"])
 						_tint(l["b"])
+			"bloated_bundle":
+				if board.bundles.has(inst["bundle"]):
+					for m in board.bundles[inst["bundle"]]["members"]:
+						_tint(m)
+			"shortage":
+				for d in board.demands:
+					if d["id"] == inst["demand"]:
+						_tint(d["anchor"])
+			"exposed":
+				_tint(inst["piece"])
+	# corruption reads darker than the red of a mere instability
+	for pid in board.pieces:
+		if board.pieces[pid].get("corrupted", false) and _piece_widgets.has(pid):
+			_piece_widgets[pid].modulate = TINT_CORRUPT
 
 
 func _tint(pid: String) -> void:
@@ -311,6 +414,7 @@ func _tint(pid: String) -> void:
 func _refresh_meters() -> void:
 	_title.text = board.territory_name
 	_intro.text = board.territory_intro
+	_narration.text = _narration_text
 	_concord_bar.max_value = max(1, board.concord_target)
 	_concord_bar.value = board.concord
 	_blight_bar.max_value = max(1, board.blight_max)
@@ -347,6 +451,13 @@ func _update_guide() -> void:
 				for pid in _selected.keys():
 					regions[board.region_of(pid)] = true
 				_guide.text = G_CLASH_SELECT if regions.size() < 2 else G_CLASH_ACT
+		"bloated_bundle":
+			_guide.text = G_BLOAT_NUDGE if taught.get("split", false) else G_BLOAT
+		"shortage":
+			var knows: bool = taught.get("copy", false) or taught.get("share", false)
+			_guide.text = G_SHORTAGE_NUDGE if knows else G_SHORTAGE
+		"exposed":
+			_guide.text = G_EXPOSED_NUDGE if taught.get("wall", false) else G_EXPOSED
 
 
 func _on_meter_changed(_v: int) -> void:
@@ -389,9 +500,9 @@ func _on_overlay_btn() -> void:
 
 
 ## Called by the orchestrator after the final territory is cleared.
-func show_finale() -> void:
+func show_finale(text: String = "四境皆清 · 国土重归秩序") -> void:
 	_overlay_mode = "finale"
-	_overlay_label.text = "四境皆清 · 国土重归秩序"
+	_overlay_label.text = text
 	_overlay_label.modulate = Color("e8d8a0")
 	_overlay_btn.visible = false
 	_overlay.visible = true

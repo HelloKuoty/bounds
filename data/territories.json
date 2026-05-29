@@ -89,6 +89,74 @@
       ]
     },
     {
+      "id": "the_archive",
+      "name": "档案窖",
+      "intro": "一总档连着满架的卷,一股脑塞给一个人看管,谁也照应不过来。该分几处,各有所守。",
+      "concord_target": 1,
+      "blight_max": 40,
+      "insight": 5,
+      "pieces": [
+        {"id": "arch_root", "label": "总档", "glyph": "档", "meaning": "master", "kind": "living"},
+        {"id": "a_r1", "label": "一卷", "glyph": "卷", "meaning": "roll", "kind": "living"},
+        {"id": "a_r2", "label": "一卷", "glyph": "卷", "meaning": "roll", "kind": "living"},
+        {"id": "a_r3", "label": "一卷", "glyph": "卷", "meaning": "roll", "kind": "living"},
+        {"id": "a_r4", "label": "一卷", "glyph": "卷", "meaning": "roll", "kind": "living"}
+      ],
+      "clusters": [
+        {"id": "the_stacks", "label": "这一架", "members": ["arch_root", "a_r1", "a_r2", "a_r3", "a_r4"]}
+      ]
+    },
+    {
+      "id": "two_markets",
+      "name": "两市",
+      "intro": "东市西市本是一处,得拆作两边各管各的。可两边都要使钱——钱无所谓是哪一枚,誊一份过去便是。",
+      "concord_target": 1,
+      "blight_max": 30,
+      "insight": 4,
+      "pieces": [
+        {"id": "m_east", "label": "东市", "glyph": "市", "meaning": "east_market", "kind": "living"},
+        {"id": "m_west", "label": "西市", "glyph": "市", "meaning": "west_market", "kind": "living"},
+        {"id": "coin", "label": "通宝", "glyph": "钱", "meaning": "money", "kind": "token"}
+      ],
+      "demands": [
+        {"id": "east_needs", "anchor": "m_east", "glyph": "钱", "meaning": "money"},
+        {"id": "west_needs", "anchor": "m_west", "glyph": "钱", "meaning": "money"}
+      ]
+    },
+    {
+      "id": "shared_well",
+      "name": "共井",
+      "intro": "一口古井,南北两邻都靠它活。井只此一口,誊不得;要两边都用,只能合着用——可合用的井,水里总混着两家的泥。",
+      "concord_target": 1,
+      "blight_max": 20,
+      "insight": 4,
+      "pieces": [
+        {"id": "well", "label": "古井", "glyph": "井", "meaning": "water", "kind": "living"},
+        {"id": "north", "label": "北邻", "glyph": "邻", "meaning": "north", "kind": "living"},
+        {"id": "south", "label": "南邻", "glyph": "邻", "meaning": "south", "kind": "living"}
+      ],
+      "demands": [
+        {"id": "north_needs", "anchor": "north", "glyph": "井", "meaning": "water"},
+        {"id": "south_needs", "anchor": "south", "glyph": "井", "meaning": "water"}
+      ]
+    },
+    {
+      "id": "the_seep",
+      "name": "渗坏",
+      "intro": "墙角起了一块霉斑,挨着它的东西正一件件烂过去。趁还没漫开,把好东西围到界外去。",
+      "concord_target": 3,
+      "blight_max": 60,
+      "insight": 3,
+      "spreading": true,
+      "corruption_max": 3,
+      "pieces": [
+        {"id": "seep", "label": "霉斑", "glyph": "斑", "meaning": "blot", "kind": "living", "corrupt": true},
+        {"id": "grain", "label": "谷", "glyph": "谷", "meaning": "grain", "kind": "living"},
+        {"id": "tool", "label": "器具", "glyph": "具", "meaning": "tool", "kind": "living"},
+        {"id": "cloth", "label": "布匹", "glyph": "布", "meaning": "cloth", "kind": "living"}
+      ]
+    },
+    {
       "id": "the_sprawl",
       "name": "蔓沼",
       "intro": "墙塌了,名混了,万物正渗成一摊烂泥。趁它还剩一点形状,重新切开。",

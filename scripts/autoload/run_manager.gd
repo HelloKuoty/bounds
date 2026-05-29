@@ -13,7 +13,8 @@ const LAYOUT := [
 	["sanctum", "territory"],
 	["heartland"],
 ]
-const NORMAL_TERRITORIES := ["the_crossing", "the_counting_house", "the_two_tongues", "two_faced", "scroll_bond"]
+const NORMAL_TERRITORIES := ["the_crossing", "the_counting_house", "the_two_tongues", "two_faced", "scroll_bond", "the_archive", "two_markets"]
+const ELITE_TERRITORIES := ["shared_well"]
 const BOSS_TERRITORY := "the_sprawl"
 
 var nodes: Dictionary = {}   # id -> { id, type, layer, territory_id, next:Array }
@@ -28,6 +29,7 @@ func generate_map(_province_id: String = "province_1") -> void:
 	start_ids.clear()
 	boss_id = ""
 	var tp := 0
+	var ep := 0
 	var prev: Array = []
 	for layer in range(LAYOUT.size()):
 		var ids_this: Array = []
@@ -39,7 +41,10 @@ func generate_map(_province_id: String = "province_1") -> void:
 			if ntype == "heartland":
 				terr = BOSS_TERRITORY
 				boss_id = nid
-			elif ntype == "territory" or ntype == "elite":
+			elif ntype == "elite":
+				terr = ELITE_TERRITORIES[ep % ELITE_TERRITORIES.size()]
+				ep += 1
+			elif ntype == "territory":
 				terr = NORMAL_TERRITORIES[tp % NORMAL_TERRITORIES.size()]
 				tp += 1
 			nodes[nid] = {"id": nid, "type": ntype, "layer": layer, "territory_id": terr, "next": []}

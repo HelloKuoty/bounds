@@ -11,6 +11,7 @@ var label: String = ""    # display name shown to the player
 var glyph: String = ""    # the visible symbol/word it carries
 var meaning: String = ""  # the true meaning (drives instability; semantic key)
 var kind: String = "living"  # "living" | "token"
+var corrupt: bool = false  # starts already rotten (only meaningful in spreading territories)
 
 
 static func from_dict(d: Dictionary) -> PieceData:
@@ -20,6 +21,7 @@ static func from_dict(d: Dictionary) -> PieceData:
 	p.glyph = d.get("glyph", "")
 	p.meaning = d.get("meaning", "")
 	p.kind = d.get("kind", "living")
+	p.corrupt = bool(d.get("corrupt", false))
 	return p
 
 

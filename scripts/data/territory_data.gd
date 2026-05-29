@@ -7,6 +7,8 @@ var intro: String = ""
 var concord_target: int = 1   # reach this much order to clear
 var blight_max: int = 30      # rot at/above this collapses the land
 var insight: int = 0          # starting "care" budget for costly actions
+var spreading: bool = false   # if true, corruption spreads region-locally each turn
+var corruption_max: int = 0   # this many corrupted pieces collapses the land (0 = off)
 var pieces: Array[PieceData] = []
 # Declared consistency groups: each { id, label, members:Array[String] }.
 # A group whose members aren't all collected under one guardian is unstable.
@@ -15,6 +17,10 @@ var clusters: Array = []
 # must communicate. If a wall separates them with no translator on the border,
 # the gap festers (a "clash").
 var links: Array = []
+# Declared demands: each { id, anchor:piece_id, glyph, meaning }. The region that
+# holds `anchor` must contain a (non-stale) token of this glyph+meaning, else it
+# runs short. Tokens can be copied to satisfy demands; living things cannot.
+var demands: Array = []
 
 
 static func from_dict(d: Dictionary) -> TerritoryData:
@@ -25,9 +31,12 @@ static func from_dict(d: Dictionary) -> TerritoryData:
 	t.concord_target = int(d.get("concord_target", 1))
 	t.blight_max = int(d.get("blight_max", 30))
 	t.insight = int(d.get("insight", 0))
+	t.spreading = bool(d.get("spreading", false))
+	t.corruption_max = int(d.get("corruption_max", 0))
 	var raw: Array = d.get("pieces", [])
 	for rp in raw:
 		t.pieces.append(PieceData.from_dict(rp))
 	t.clusters = d.get("clusters", [])
 	t.links = d.get("links", [])
+	t.demands = d.get("demands", [])
 	return t
