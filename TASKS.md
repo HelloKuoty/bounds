@@ -66,7 +66,7 @@
 - [x] **③ 空间化陈腐**:`spreading` 关卡每回合腐蚀同区,`exposed` 失稳,用界遏制(test_rot_spread)
 - [x] **⑤ 行省地图**:`RunMapView` 节点图 + 可达性 + Main 地图驱动路由(test_run_map_view)
 - [x] **⑥ 叙事**:`Narrative`(前言/四章/旁白/结局),开场+关间+结局接入 Main(test_narrative,过禁词)
-- 关卡库扩至 13(7 普通 + 1 精英 + 1 蔓延 + Boss + 教学序列);失稳类型扩至 6 种
+- 关卡库扩至 10(7 普通 + 1 精英共井 + 1 蔓延渗坏 + 1 Boss 蔓沼);失稳类型扩至 6 种
 
 ---
 
