@@ -61,6 +61,8 @@ var _narration: Label
 var _narration_text := ""
 var _guide: Label
 var _regions_box: HFlowContainer
+var _concord_label: Label
+var _blight_label: Label
 var _concord_bar: ProgressBar
 var _blight_bar: ProgressBar
 var _status: Label
@@ -160,12 +162,14 @@ func _build_hud() -> Control:
 	hud.custom_minimum_size = Vector2(280, 0)
 	hud.add_theme_constant_override("separation", 8)
 
-	hud.add_child(_label("秩序", Color("9fe0a0")))
+	_concord_label = _label("秩序", Color("9fe0a0"))
+	hud.add_child(_concord_label)
 	_concord_bar = ProgressBar.new()
 	_concord_bar.show_percentage = false
 	hud.add_child(_concord_bar)
 
-	hud.add_child(_label("陈腐", Color("e08a8a")))
+	_blight_label = _label("陈腐", Color("e08a8a"))
+	hud.add_child(_blight_label)
 	_blight_bar = ProgressBar.new()
 	_blight_bar.show_percentage = false
 	hud.add_child(_blight_bar)
@@ -406,21 +410,30 @@ func _highlight_instabilities() -> void:
 						_tint(d["anchor"])
 			"exposed":
 				_tint(inst["piece"])
-	# corruption reads darker than the red of a mere instability
+	# corruption reads darker than a mere instability — plus a distinct mark
 	for pid in board.pieces:
 		if board.pieces[pid].get("corrupted", false) and _piece_widgets.has(pid):
-			_piece_widgets[pid].modulate = TINT_CORRUPT
+			var b: Button = _piece_widgets[pid]
+			b.modulate = TINT_CORRUPT
+			if not b.text.begins_with("×"):
+				b.text = "×" + b.text.trim_prefix("！")
 
 
 func _tint(pid: String) -> void:
-	if _piece_widgets.has(pid):
-		_piece_widgets[pid].modulate = TINT_UNSTABLE
+	if not _piece_widgets.has(pid):
+		return
+	var b: Button = _piece_widgets[pid]
+	b.modulate = TINT_UNSTABLE
+	if not b.text.begins_with("！") and not b.text.begins_with("×"):
+		b.text = "！" + b.text  # non-colour cue: a mark, not just red (for colour-blind play)
 
 
 func _refresh_meters() -> void:
 	_title.text = board.territory_name
 	_intro.text = board.territory_intro
 	_narration.text = _narration_text
+	_concord_label.text = "秩序  %d / %d" % [board.concord, board.concord_target]
+	_blight_label.text = "陈腐  %d / %d" % [board.rot, board.blight_max]
 	_concord_bar.max_value = max(1, board.concord_target)
 	_concord_bar.value = board.concord
 	_blight_bar.max_value = max(1, board.blight_max)

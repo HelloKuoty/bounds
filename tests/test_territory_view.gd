@@ -94,6 +94,27 @@ func test_copy_lights_up_only_on_a_shortage() -> void:
 	view.free()
 
 
+func test_instability_carries_a_non_colour_mark() -> void:
+	# Colour-blind safety: an unstable piece must be distinguishable without colour.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	assert_true(view._piece_widgets["ledger"].text.begins_with("！"), "unstable piece carries a mark, not only red")
+	assert_false(view._piece_widgets["trader"].text.begins_with("！"), "a stable piece stays unmarked")
+	view.free()
+
+
+func test_meters_read_as_numbers() -> void:
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	assert_true("/" in view._concord_label.text, "order meter shows a number (readable without colour)")
+	assert_true("/" in view._blight_label.text, "rot meter shows a number")
+	view.free()
+
+
 func test_finale_offers_a_way_back() -> void:
 	# Regression: the ending must keep a usable button, or the player is stuck.
 	var board := BoardState.new()
