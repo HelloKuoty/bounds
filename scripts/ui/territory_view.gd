@@ -54,6 +54,7 @@ var board: BoardState
 var taught: Dictionary = {}           # verb -> true; drives fading guidance
 var _selected: Dictionary = {}       # piece_id -> true
 var _piece_widgets: Dictionary = {}  # piece_id -> Button
+var _verb_btns: Dictionary = {}      # verb -> Button (lit only when applicable)
 var _title: Label
 var _intro: Label
 var _narration: Label
@@ -172,12 +173,14 @@ func _build_hud() -> Control:
 	_status = Label.new()
 	hud.add_child(_status)
 
-	hud.add_child(_button("画界(分出所选)", _on_wall))
-	hud.add_child(_button("成束(所选 · 首个为守门人)", _on_bundle))
-	hud.add_child(_button("拆束(把所选从一束分出)", _on_split))
-	hud.add_child(_button("立译者石(连接两片所选区域)", _on_translator))
-	hud.add_child(_button("誊本(把筹码誊往另一区)", _on_copy))
-	hud.add_child(_button("共享(把活物借给另一区)", _on_share))
+	_verb_btns["wall"] = _button("画界(分出所选)", _on_wall)
+	_verb_btns["bundle"] = _button("成束(所选 · 首个为守门人)", _on_bundle)
+	_verb_btns["split"] = _button("拆束(把所选从一束分出)", _on_split)
+	_verb_btns["translator"] = _button("立译者石(连接两片所选区域)", _on_translator)
+	_verb_btns["copy"] = _button("誊本(把筹码誊往另一区)", _on_copy)
+	_verb_btns["share"] = _button("共享(把活物借给另一区)", _on_share)
+	for key in ["wall", "bundle", "split", "translator", "copy", "share"]:
+		hud.add_child(_verb_btns[key])
 	hud.add_child(_button("结束回合", _on_end_turn))
 
 	_hint = Label.new()
@@ -209,6 +212,7 @@ func _rebuild() -> void:
 	_refresh_meters()
 	_highlight_instabilities()
 	_update_guide()
+	_update_verb_buttons()
 
 
 func _build_region_panel(region: int, piece_ids: Array) -> Control:
@@ -460,6 +464,35 @@ func _update_guide() -> void:
 			_guide.text = G_SHORTAGE_NUDGE if knows else G_SHORTAGE
 		"exposed":
 			_guide.text = G_EXPOSED_NUDGE if taught.get("wall", false) else G_EXPOSED
+
+
+## A verb button lights up only when the board currently has a problem it solves
+## — so each action teaches its own purpose, and the rarely-needed ones (誊本/
+## 共享) stop being confusing always-on noise.
+func _update_verb_buttons() -> void:
+	var types := {}
+	for inst in board.instabilities():
+		types[inst["type"]] = true
+	var has_fresh_token := false
+	for pid in board.pieces:
+		var p: Dictionary = board.pieces[pid]
+		if p["kind"] == "token" and not p.get("stale", false):
+			has_fresh_token = true
+			break
+	_set_verb("wall", types.has("name_overload") or types.has("exposed"))
+	_set_verb("bundle", types.has("unguarded_cluster"))
+	_set_verb("split", types.has("bloated_bundle"))
+	_set_verb("translator", types.has("clash"))
+	_set_verb("copy", types.has("shortage") and has_fresh_token)
+	_set_verb("share", types.has("shortage"))
+
+
+func _set_verb(key: String, enabled: bool) -> void:
+	if not _verb_btns.has(key):
+		return
+	var b: Button = _verb_btns[key]
+	b.disabled = not enabled
+	b.modulate = Color(1, 1, 1, 1.0) if enabled else Color(1, 1, 1, 0.32)
 
 
 func _on_meter_changed(_v: int) -> void:

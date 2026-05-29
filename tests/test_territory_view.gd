@@ -69,6 +69,31 @@ func test_guide_fades_once_taught() -> void:
 	view.free()
 
 
+func test_verbs_light_up_by_situation() -> void:
+	# A name conflict → 画界 is lit; 誊本/共享 stay dark (no shortage to fix).
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	assert_false(view._verb_btns["wall"].disabled, "wall lit on a name conflict")
+	assert_true(view._verb_btns["copy"].disabled, "copy dark when nothing runs short")
+	assert_true(view._verb_btns["share"].disabled, "share dark when nothing runs short")
+	assert_true(view._verb_btns["bundle"].disabled, "bundle dark with no loose cluster")
+	view.free()
+
+
+func test_copy_lights_up_only_on_a_shortage() -> void:
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("two_markets"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	assert_true(view._verb_btns["copy"].disabled, "copy dark at first (both markets share the coin)")
+	board.draw_wall(["m_west"])  # the split market now runs short of the coin
+	view._rebuild()
+	assert_false(view._verb_btns["copy"].disabled, "copy lights up exactly when a region runs short")
+	view.free()
+
+
 func test_finale_offers_a_way_back() -> void:
 	# Regression: the ending must keep a usable button, or the player is stuck.
 	var board := BoardState.new()
