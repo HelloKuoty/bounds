@@ -32,14 +32,9 @@ func _player_facing_strings() -> Array:
 		out.append(s)
 	# Contextual guidance lines.
 	for s in [
-		TerritoryView.G_OVERLOAD_SELECT, TerritoryView.G_OVERLOAD_ACT,
-		TerritoryView.G_CLUSTER_SELECT, TerritoryView.G_CLUSTER_ACT,
-		TerritoryView.G_CLASH_SELECT, TerritoryView.G_CLASH_ACT,
-		TerritoryView.G_SETTLED, TerritoryView.G_CLEARED,
-		TerritoryView.G_NUDGE_OVERLOAD, TerritoryView.G_NUDGE_CLUSTER, TerritoryView.G_NUDGE_CLASH,
-		TerritoryView.G_BLOAT, TerritoryView.G_BLOAT_NUDGE,
-		TerritoryView.G_SHORTAGE, TerritoryView.G_SHORTAGE_NUDGE,
-		TerritoryView.G_EXPOSED, TerritoryView.G_EXPOSED_NUDGE,
+		TerritoryView.G_TEACH_WALL, TerritoryView.G_TEACH_BUNDLE, TerritoryView.G_TEACH_SPLIT,
+		TerritoryView.G_TEACH_TRANSLATOR, TerritoryView.G_TEACH_SHORTAGE, TerritoryView.G_TEACH_EXPOSED,
+		TerritoryView.G_LOOK, TerritoryView.G_SETTLED, TerritoryView.G_CLEARED,
 	]:
 		out.append(s)
 	# Narrative prose + the boot screen's own words.

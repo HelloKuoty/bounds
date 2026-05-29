@@ -36,25 +36,19 @@ const MEANING_COLORS := [
 ]
 const MEANING_SHAPES := ["circle", "square", "diamond", "triangle", "cross", "ring"]
 
-# Contextual guidance — speaks only in the world's own terms, never the concepts.
-const G_OVERLOAD_SELECT := "红光处:两样东西都唤作「%s」,土地却认得它们并非一物。先点选其中一样。"
-const G_OVERLOAD_ACT := "很好。按「画界」,把所选分到界外 —— 同一个名,在两片地各表一意,便不再相争。"
-const G_CLUSTER_SELECT := "红光的这几样本该是一体,如今各自飘散。把它们全部点选。"
-const G_CLUSTER_ACT := "按「成束」,让它们归于一束 —— 头一个所选,便是看门的。"
-const G_CLASH_SELECT := "两片地被界隔开,却仍要彼此往来。从这两片地里各点一样。"
-const G_CLASH_ACT := "按「立译者石」,在两片地之间架起一座通路。"
+# Guidance teaches the TOOL and HOW TO DIAGNOSE — never which pieces. The first time
+# a trouble appears, teach what the verb does + the heuristic to look for; once the
+# verb is learned the guide goes quiet (G_LOOK) and diagnosis is the player's job —
+# the red / ！/ tremble are feedback, not the answer. (去保姆化, iter-25)
+const G_TEACH_WALL := "一个『名』,两样各表一意,土地便乱。【画界】把同名异意的分到两片地 —— 自己找:何处名同、形色却不同?"
+const G_TEACH_BUNDLE := "有几样本是一体,却各自飘散。【成束】把它们收拢、立一个看门的 —— 自己认:哪些形色相同、本该同束?"
+const G_TEACH_SPLIT := "一束揽得太多,便守不住。【拆束】把其中几样分出去,各有所守 —— 看看哪一束太满。"
+const G_TEACH_TRANSLATOR := "界隔开了两片地,有些事仍要往来。【立译者石】在两片地间架一座通路 —— 找那对隔界相望、却还连着的。"
+const G_TEACH_SHORTAGE := "此地缺一味。筹码可【誊本】誊来一份;独一份的活物只能【共享】(有代价) —— 看缺的是什么。"
+const G_TEACH_EXPOSED := "腐斑要漫开了。【画界】把近旁的好东西围到界外 —— 趁它还没沾上。"
+const G_LOOK := "土地不安 —— 细看名与形,自寻其谬。"
 const G_SETTLED := "土地已然安宁。按「结束回合」,静观其变。"
 const G_CLEARED := "此地已净。"
-# Faded guidance — once a verb is learned, only point at the trouble, don't tell.
-const G_NUDGE_OVERLOAD := "「%s」处,红光仍在相争。"
-const G_NUDGE_CLUSTER := "几样泛红之物,本该是一体。"
-const G_NUDGE_CLASH := "界的两边,还差一座通路。"
-const G_BLOAT := "一束揽得太多了。从中点选几样,按「拆束」分出去,各有所守。"
-const G_BLOAT_NUDGE := "一束揽得太多,分一些出去。"
-const G_SHORTAGE := "此地缺一样东西。把别处的筹码点上,再点此地一样,按「誊本」誊来;若是活物,则用「共享」。"
-const G_SHORTAGE_NUDGE := "此地还缺一样东西。"
-const G_EXPOSED := "红斑要漫过来了!选中近旁的好东西,按「画界」把它们围到界外。"
-const G_EXPOSED_NUDGE := "红斑近了 —— 把好东西围走。"
 
 signal continue_pressed
 signal retry_pressed
@@ -634,34 +628,21 @@ func _update_guide() -> void:
 	if insts.is_empty():
 		_guide.text = G_SETTLED
 		return
-	var inst: Dictionary = insts[0]
-	var sel := _selected.size()
-	match inst["type"]:
+	# Teach the tool + how to diagnose the first time a trouble appears — never which
+	# pieces. Once the verb is learned, go quiet and let the player read the board.
+	match insts[0]["type"]:
 		"name_overload":
-			if taught.get("wall", false):
-				_guide.text = G_NUDGE_OVERLOAD % inst["glyph"]
-			else:
-				_guide.text = G_OVERLOAD_SELECT % inst["glyph"] if sel == 0 else G_OVERLOAD_ACT
+			_guide.text = G_LOOK if taught.get("wall", false) else G_TEACH_WALL
 		"unguarded_cluster":
-			if taught.get("bundle", false):
-				_guide.text = G_NUDGE_CLUSTER
-			else:
-				_guide.text = G_CLUSTER_SELECT if sel == 0 else G_CLUSTER_ACT
-		"clash":
-			if taught.get("translator", false):
-				_guide.text = G_NUDGE_CLASH
-			else:
-				var regions := {}
-				for pid in _selected.keys():
-					regions[board.region_of(pid)] = true
-				_guide.text = G_CLASH_SELECT if regions.size() < 2 else G_CLASH_ACT
+			_guide.text = G_LOOK if taught.get("bundle", false) else G_TEACH_BUNDLE
 		"bloated_bundle":
-			_guide.text = G_BLOAT_NUDGE if taught.get("split", false) else G_BLOAT
+			_guide.text = G_LOOK if taught.get("split", false) else G_TEACH_SPLIT
+		"clash":
+			_guide.text = G_LOOK if taught.get("translator", false) else G_TEACH_TRANSLATOR
 		"shortage":
-			var knows: bool = taught.get("copy", false) or taught.get("share", false)
-			_guide.text = G_SHORTAGE_NUDGE if knows else G_SHORTAGE
+			_guide.text = G_LOOK if (taught.get("copy", false) or taught.get("share", false)) else G_TEACH_SHORTAGE
 		"exposed":
-			_guide.text = G_EXPOSED_NUDGE if taught.get("wall", false) else G_EXPOSED
+			_guide.text = G_LOOK if taught.get("wall", false) else G_TEACH_EXPOSED
 
 
 ## A verb button lights up only when the board currently has a problem it solves

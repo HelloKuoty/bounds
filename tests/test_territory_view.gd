@@ -51,21 +51,27 @@ func test_clear_shows_continue_and_emits() -> void:
 	view.free()
 
 
-func test_guide_is_full_when_untaught() -> void:
+func test_first_lesson_teaches_the_tool_not_the_pieces() -> void:
+	# 去保姆化(iter-25): the first time, the guide teaches what 画界 does + how to
+	# diagnose — but never names which pieces (no "账", no "click this one").
 	var board := BoardState.new()
 	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
 	var view := TerritoryView.new()
 	view.setup(board, {})  # nothing learned yet
-	assert_eq(view._guide.text, TerritoryView.G_OVERLOAD_SELECT % "账", "full guidance first time")
+	assert_eq(view._guide.text, TerritoryView.G_TEACH_WALL, "first time: teach the tool + the diagnosis heuristic")
+	assert_false("账" in view._guide.text, "RED LINE: the guide never names the conflicting glyph — the player finds it")
 	view.free()
 
 
-func test_guide_fades_once_taught() -> void:
+func test_guide_goes_quiet_once_taught() -> void:
+	# Once the verb is learned the guide stops pointing — just "go look". Diagnosis is
+	# the player's job; the red / ！/ tremble are feedback, not the answer.
 	var board := BoardState.new()
 	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
 	var view := TerritoryView.new()
 	view.setup(board, {"wall": true})  # learned walls earlier
-	assert_eq(view._guide.text, TerritoryView.G_NUDGE_OVERLOAD % "账", "faded to a nudge once learned")
+	assert_eq(view._guide.text, TerritoryView.G_LOOK, "taught → type-agnostic 'go look', no pointing")
+	assert_false("账" in view._guide.text, "RED LINE: a learned-verb guide reveals nothing about which pieces")
 	view.free()
 
 
