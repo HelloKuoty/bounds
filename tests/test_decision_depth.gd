@@ -72,3 +72,19 @@ func test_elegant_single_cut_resolves_two_conflicts() -> void:
 	assert_eq(board.instabilities().size(), 0, "a single well-placed wall resolves both")
 	assert_eq(board.concord, 2, "two conflicts cleared at once")
 	assert_eq(board.insight, 1, "and it cost only one care of the two")
+
+
+func test_knot_ford_is_an_interlocked_chain() -> void:
+	# iter-21 depth (阿May): a knot, not a pair. Walling the same-name clash apart
+	# OPENS a clash (the ferry between the two banks), so a wall earns nothing until
+	# you also bridge it — you must unravel in order, not just "find a pair".
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("knot_ford"))
+	assert_eq(board.instabilities().size(), 2, "starts as a name-clash + an unguarded ledger")
+	board.bundle(["kf_root", "kf_p1", "kf_p2"], "kf_root")   # collect the ledger → +1
+	assert_eq(board.concord, 1, "the ledger earns one")
+	var r := board.draw_wall(["kf_ingot"])                   # fixes the 银 clash BUT splits the ferry → opens a clash
+	assert_false(board.cleared, "walling alone doesn't clear — it traded one trouble for another")
+	assert_eq(board.concord, 1, "a wall that opens a gap earns nothing")
+	board.place_translator(BoardState.FIELD_REGION, r)       # bridge the ferry → +1
+	assert_true(board.cleared, "unravelled in order: collect, split, then bridge the gap it opened")

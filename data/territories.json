@@ -85,6 +85,27 @@
       ]
     },
     {
+      "id": "knot_ford",
+      "name": "连环渡",
+      "intro": "一处缠局:同一个「银」,两岸各表一意——分开,则两岸断了往来,还得另架一座通路;一总册又连着散页,等人收拢。一处动,别处便牵一发——想清楚再落手。",
+      "concord_target": 2,
+      "blight_max": 40,
+      "insight": 4,
+      "pieces": [
+        {"id": "kf_coin", "label": "南岸的银", "glyph": "银", "meaning": "kf_coin", "kind": "living"},
+        {"id": "kf_ingot", "label": "北岸的银", "glyph": "银", "meaning": "kf_ingot", "kind": "living"},
+        {"id": "kf_root", "label": "总册", "glyph": "册", "meaning": "kf_master", "kind": "living"},
+        {"id": "kf_p1", "label": "一页", "glyph": "页", "meaning": "kf_leaf", "kind": "living"},
+        {"id": "kf_p2", "label": "一页", "glyph": "页", "meaning": "kf_leaf", "kind": "living"}
+      ],
+      "clusters": [
+        {"id": "kf_ledger", "label": "这一册", "members": ["kf_root", "kf_p1", "kf_p2"]}
+      ],
+      "links": [
+        {"id": "kf_ferry", "label": "两岸往来", "a": "kf_coin", "b": "kf_ingot"}
+      ]
+    },
+    {
       "id": "scroll_bond",
       "name": "契卷堂",
       "intro": "一总卷连着散页,却没人收拢;两纸「契」各执一词,偏要合成一桩事。",
