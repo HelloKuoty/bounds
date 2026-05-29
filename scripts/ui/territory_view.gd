@@ -68,6 +68,8 @@ var _ordered_pieces: Array = []      # stable order, for number-key selection
 var _verb_btns: Dictionary = {}      # verb -> Button (lit only when applicable)
 var _meaning_index: Dictionary = {}  # meaning -> stable int (drives badge colour/shape)
 var _icon_cache: Dictionary = {}     # index -> ImageTexture (one badge per essence)
+var _unstable_widgets: Array = []    # buttons currently trembling with distress (林晚)
+var _anim_t := 0.0
 var _title: Label
 var _intro: Label
 var _narration: Label
@@ -466,6 +468,7 @@ func _toggle_piece(pid: String) -> void:
 # --- refresh / feedback -----------------------------------------------------
 
 func _highlight_instabilities() -> void:
+	_unstable_widgets.clear()
 	for inst in board.instabilities():
 		match inst["type"]:
 			"name_overload":
@@ -507,8 +510,34 @@ func _tint(pid: String) -> void:
 		return
 	var b: Button = _piece_widgets[pid]
 	b.modulate = TINT_UNSTABLE
+	if not _unstable_widgets.has(b):
+		_unstable_widgets.append(b)  # the world reacts: this piece will tremble (林晚, iter-09)
 	if not b.text.begins_with("！") and not b.text.begins_with("×"):
 		b.text = "！" + b.text  # non-colour cue: a mark, not just red (for colour-blind play)
+
+
+## The world reacts to trouble: an unstable piece trembles and breathes — alive and
+## in distress. The feedback IS the piece, not a label pinned on it; the "！" mark
+## stays as a still, colour-blind-safe backup. (林晚, iter-09)
+func _process(delta: float) -> void:
+	if _unstable_widgets.is_empty():
+		return
+	_anim_t += delta
+	for i in _unstable_widgets.size():
+		var b: Button = _unstable_widgets[i]
+		if not is_instance_valid(b):
+			continue
+		var tr := _distress_transform(_anim_t, i * 1.3)
+		b.pivot_offset = b.size * 0.5
+		b.rotation = tr["rotation"]
+		b.scale = tr["scale"]
+
+
+## Pure (testable) distress transform: a quick small tremble + a slow breath.
+func _distress_transform(t: float, phase: float) -> Dictionary:
+	var rot := sin(t * 17.0 + phase) * 0.045
+	var sc := 1.0 + sin(t * 5.0 + phase) * 0.035
+	return {"rotation": rot, "scale": Vector2(sc, sc)}
 
 
 func _refresh_meters() -> void:

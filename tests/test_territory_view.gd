@@ -194,3 +194,23 @@ func test_same_name_different_essence_look_different() -> void:
 	view.setup(board, {})
 	assert_true(view._piece_widgets["ledger"].icon != view._piece_widgets["manifest"].icon, "same name, different essence → different badge")
 	view.free()
+
+
+func test_unstable_pieces_are_animated() -> void:
+	# 林晚(iter-09): the world reacts — conflicting pieces are queued to tremble,
+	# not merely tagged. (The tremble runs in-tree; here we prove the wiring.)
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	assert_eq(view._unstable_widgets.size(), 2, "both conflicting pieces are queued for the distress tremble")
+	view.free()
+
+
+func test_distress_transform_trembles_within_bounds() -> void:
+	var view := TerritoryView.new()
+	var a := view._distress_transform(0.05, 0.0)
+	var b := view._distress_transform(0.25, 0.0)
+	assert_true(a["rotation"] != b["rotation"], "the tremble animates over time")
+	assert_true(absf(a["rotation"]) <= 0.1, "the tremble stays subtle (small angle)")
+	view.free()
