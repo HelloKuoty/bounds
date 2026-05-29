@@ -254,6 +254,29 @@ func test_release_bloom_is_safe_when_detached() -> void:
 	view.free()
 
 
+func test_pang_layer_rests_transparent_and_cold() -> void:
+	# 林晚(iter-15): the "pain" pole — a cold dark wince when the land founders,
+	# answering the warm release so the loop has both poles.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	assert_true(view._pang_layer is ColorRect, "there is a pain-flash layer")
+	assert_eq(view._pang_layer.color.a, 0.0, "it rests transparent (only flares on a fall)")
+	assert_true(view._pang_layer.color.b > view._pang_layer.color.r, "the pain wash is cold, opposite the warm release")
+	view.free()
+
+
+func test_pang_is_safe_when_detached() -> void:
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	view._pang(0.5)  # detached → no tween, no change, no crash
+	assert_eq(view._pang_layer.color.a, 0.0, "stays transparent when detached")
+	view.free()
+
+
 func test_pieces_look_like_seals_not_rectangles() -> void:
 	# 顾屿(iter-14): pieces read as rounded, shadowed seals sitting on the map —
 	# not flat debug rectangles. (Full illustrated art still needs a real artist.)

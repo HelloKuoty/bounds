@@ -73,6 +73,8 @@ var _anim_t := 0.0
 var _flash: ColorRect                # warm release-flash layer — the exhale (林晚, iter-12)
 var _flash_tween: Tween
 var _last_concord := 0               # to detect "order won back" and exhale on it
+var _pang_layer: ColorRect           # cold dark pain-flash — the wince (林晚, iter-15)
+var _pang_tween: Tween
 var _title: Label
 var _intro: Label
 var _narration: Label
@@ -180,6 +182,12 @@ func _build_chrome() -> void:
 	_flash.set_anchors_preset(PRESET_FULL_RECT)
 	_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_flash)
+
+	_pang_layer = ColorRect.new()
+	_pang_layer.color = Color(0.05, 0.05, 0.09, 0.0)  # cold dark; wells up briefly when the land founders
+	_pang_layer.set_anchors_preset(PRESET_FULL_RECT)
+	_pang_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_pang_layer)
 
 	_overlay = CenterContainer.new()
 	_overlay.set_anchors_preset(PRESET_FULL_RECT)
@@ -666,6 +674,20 @@ func _release_bloom(strength: float) -> void:
 	_flash_tween.tween_property(_flash, "color:a", 0.0, 0.45)
 
 
+## A cold, dark wince — warmth draining as the land founders. The "pain" pole that
+## answers the warm release, so the loop has both poles (pain → insight → relief).
+## Slower fall than the release — pain lingers. Detached-safe. (林晚, iter-15)
+func _pang(strength: float) -> void:
+	if _pang_layer == null or not is_inside_tree():
+		return
+	if _pang_tween != null and _pang_tween.is_valid():
+		_pang_tween.kill()
+	_pang_layer.color.a = 0.0
+	_pang_tween = create_tween()
+	_pang_tween.tween_property(_pang_layer, "color:a", strength, 0.10)
+	_pang_tween.tween_property(_pang_layer, "color:a", 0.0, 0.60)
+
+
 func _on_cleared() -> void:
 	_release_bloom(0.42)  # the big exhale — the land is whole again
 	_overlay_mode = "clear"
@@ -677,6 +699,7 @@ func _on_cleared() -> void:
 
 
 func _on_failed() -> void:
+	_pang(0.5)  # the wince — warmth drains as the land founders
 	_overlay_mode = "fail"
 	_overlay_label.text = "土地塌陷"
 	_overlay_label.modulate = Color("e08a8a")
@@ -687,6 +710,7 @@ func _on_failed() -> void:
 
 func _on_action_refused(_reason: String) -> void:
 	# Out of care with the land still unsettled — offer an immediate restart.
+	_pang(0.34)
 	_overlay_mode = "fail"
 	_overlay_label.text = "心力已尽 —— 切得太多了"
 	_overlay_label.modulate = Color("e0b070")
