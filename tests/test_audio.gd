@@ -15,3 +15,10 @@ func test_ambience_is_silent_safe_in_headless() -> void:
 	AudioManager.start_ambience()
 	assert_true(AudioManager._silent, "headless is detected as silent")
 	assert_false(AudioManager._bed.playing, "no playback is started in headless")
+
+
+func test_teardown_stops_the_bed() -> void:
+	# Regression (iter-23, caught in a real windowed run): a still-looping ambient
+	# bed leaks its playback at exit; teardown must stop it.
+	AudioManager._exit_tree()
+	assert_false(AudioManager._bed.playing, "the bed is not left playing at teardown")

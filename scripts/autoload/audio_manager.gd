@@ -50,6 +50,18 @@ func stop_ambience() -> void:
 		_bed.stop()
 
 
+## Stop the looping bed before teardown — a still-playing loop leaks its playback
+## (AudioStreamPlaybackWAV) at exit. Headless never plays it; only real runs hit this.
+func _exit_tree() -> void:
+	# Stop the looping bed on teardown (correct hygiene; covers a normal window-close).
+	# Note: an abrupt quit may still print a benign "AudioStreamPlayback leaked at exit"
+	# — the audio server releases playback async with no frame left to flush; it has no
+	# runtime impact (the OS reclaims memory on exit) and the player never sees it.
+	if is_instance_valid(_bed):
+		_bed.stop()
+		_bed.stream = null
+
+
 ## Synthesise a short decaying tone (sum of sines), 16-bit mono.
 func _tone(freqs: Array, dur: float) -> AudioStreamWAV:
 	var n := int(SR * dur)
