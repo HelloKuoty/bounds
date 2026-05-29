@@ -73,7 +73,7 @@
       "intro": "这镇的名最会骗人:有名字一样的,其实各是各的,该分开;也有名字两异的,却本是一条命,该并作一束。认形色,莫认名。",
       "concord_target": 2,
       "blight_max": 30,
-      "insight": 3,
+      "insight": 2,
       "pieces": [
         {"id": "gong", "label": "谯楼的钟", "glyph": "钟", "meaning": "bell_time", "kind": "living"},
         {"id": "goblet", "label": "席上的钟", "glyph": "钟", "meaning": "bell_cup", "kind": "token"},
@@ -90,7 +90,7 @@
       "intro": "一处缠局:同一个「银」,两岸各表一意——分开,则两岸断了往来,还得另架一座通路;一总册又连着散页,等人收拢。一处动,别处便牵一发——想清楚再落手。",
       "concord_target": 2,
       "blight_max": 40,
-      "insight": 4,
+      "insight": 3,
       "pieces": [
         {"id": "kf_coin", "label": "南岸的银", "glyph": "银", "meaning": "kf_coin", "kind": "living"},
         {"id": "kf_ingot", "label": "北岸的银", "glyph": "银", "meaning": "kf_ingot", "kind": "living"},
@@ -200,7 +200,7 @@
       "intro": "墙塌了,名混了,万物正渗成一摊烂泥。趁它还剩一点形状,重新切开。",
       "concord_target": 3,
       "blight_max": 45,
-      "insight": 6,
+      "insight": 5,
       "pieces": [
         {"id": "s_title", "label": "镇长的名", "glyph": "名", "meaning": "title", "kind": "living"},
         {"id": "s_label", "label": "货箱的名", "glyph": "名", "meaning": "label", "kind": "token"},
@@ -208,7 +208,9 @@
         {"id": "s_p1", "label": "一页", "glyph": "页", "meaning": "page", "kind": "living"},
         {"id": "s_p2", "label": "一页", "glyph": "页", "meaning": "page", "kind": "living"},
         {"id": "s_east", "label": "南市的银", "glyph": "银", "meaning": "silver_coin", "kind": "living"},
-        {"id": "s_west", "label": "北市的银", "glyph": "银", "meaning": "silver_ingot", "kind": "living"}
+        {"id": "s_west", "label": "北市的银", "glyph": "银", "meaning": "silver_ingot", "kind": "living"},
+        {"id": "s_jar_a", "label": "东窖的酒", "glyph": "酒", "meaning": "wine", "kind": "token"},
+        {"id": "s_jar_b", "label": "西窖的酒", "glyph": "酒", "meaning": "wine", "kind": "token"}
       ],
       "clusters": [
         {"id": "the_casefile", "label": "这宗卷", "members": ["s_root", "s_p1", "s_p2"]}
