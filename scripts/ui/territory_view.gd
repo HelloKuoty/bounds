@@ -87,6 +87,13 @@ func setup(b: BoardState, p_taught: Dictionary = {}, p_narration: String = "") -
 	board.territory_cleared.connect(_on_cleared)
 	board.territory_failed.connect(_on_failed)
 	board.action_refused.connect(_on_action_refused)
+	# placeholder SFX on key events (AudioManager is silent-safe in headless)
+	board.region_split.connect(func(_r, _n): AudioManager.play("wall"))
+	board.bundle_formed.connect(func(_g): AudioManager.play("bundle"))
+	board.translator_placed.connect(func(_a, _b): AudioManager.play("translator"))
+	board.territory_cleared.connect(func(): AudioManager.play("clear"))
+	board.territory_failed.connect(func(): AudioManager.play("fail"))
+	board.action_refused.connect(func(_r): AudioManager.play("error"))
 	_rebuild()
 
 

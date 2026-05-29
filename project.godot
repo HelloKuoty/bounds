@@ -19,6 +19,7 @@ EventBus="*res://scripts/autoload/event_bus.gd"
 TerritoryDatabase="*res://scripts/autoload/territory_database.gd"
 RunManager="*res://scripts/autoload/run_manager.gd"
 GameState="*res://scripts/autoload/game_state.gd"
+AudioManager="*res://scripts/autoload/audio_manager.gd"
 
 [display]
 
