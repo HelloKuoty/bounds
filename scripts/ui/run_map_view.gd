@@ -24,7 +24,7 @@ func _build() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
 
 	var bg := ColorRect.new()
-	bg.color = Color("0d0e13")
+	bg.color = Color("15110a")  # warm aged-map dark (matches the territory view)
 	bg.set_anchors_preset(PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
@@ -46,7 +46,7 @@ func _build() -> void:
 
 	var hint := Label.new()
 	hint.text = "选一处可去之地"
-	hint.add_theme_color_override("font_color", Color("8fd0e0"))
+	hint.add_theme_color_override("font_color", Color("e6d3a3"))
 	col.add_child(hint)
 
 	var by_layer: Dictionary = {}

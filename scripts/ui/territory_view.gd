@@ -21,7 +21,9 @@ const UI_TEXTS := [
 	"再走一程", "灰的动作 = 此刻用不上",
 ]
 const PALETTE := [
-	Color("23303f"), Color("3a2f23"), Color("23402f"), Color("3a2336"), Color("2f2f44"), Color("403a23"),
+	# Warm aged-map tones (sepia / ochre / terracotta / khaki / dusty-rose / moss),
+	# all red-biased — an old map, not a cold debugger canvas. (顾屿, iter-07)
+	Color("3a2c1c"), Color("33301c"), Color("3d271a"), Color("2c2a1a"), Color("382824"), Color("2e2e1a"),
 ]
 const TINT_UNSTABLE := Color(1.0, 0.5, 0.5)
 const TINT_CORRUPT := Color(0.55, 0.42, 0.55)
@@ -101,10 +103,19 @@ func _build_chrome() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
 
 	var bg := ColorRect.new()
-	bg.color = Color("0f1016")
+	bg.color = Color("17120b")  # warm aged-map dark, not cold debug black
 	bg.set_anchors_preset(PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
+
+	# A soft warm vignette behind the content — darkened corners read as an aged
+	# map. Pure code (radial gradient, no texture asset), so it ships on the web.
+	var vignette := TextureRect.new()
+	vignette.texture = _make_vignette()
+	vignette.set_anchors_preset(PRESET_FULL_RECT)
+	vignette.stretch_mode = TextureRect.STRETCH_SCALE
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(vignette)
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(PRESET_FULL_RECT)
@@ -122,18 +133,18 @@ func _build_chrome() -> void:
 
 	_intro = Label.new()
 	_intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_intro.add_theme_color_override("font_color", Color("9aa0b0"))
+	_intro.add_theme_color_override("font_color", Color("b3a585"))
 	col.add_child(_intro)
 
 	_narration = Label.new()
 	_narration.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_narration.add_theme_color_override("font_color", Color("6a7080"))
+	_narration.add_theme_color_override("font_color", Color("8c8266"))
 	col.add_child(_narration)
 
 	_guide = Label.new()
 	_guide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_guide.add_theme_font_size_override("font_size", 18)
-	_guide.add_theme_color_override("font_color", Color("8fd0e0"))
+	_guide.add_theme_color_override("font_color", Color("e6d3a3"))  # warm cream, not cold cyan
 	col.add_child(_guide)
 
 	var body := HBoxContainer.new()
@@ -195,7 +206,7 @@ func _build_hud() -> Control:
 		hud.add_child(_verb_btns[key])
 	hud.add_child(_button("结束回合", _on_end_turn))
 
-	var legend := _label("灰的动作 = 此刻用不上", Color("6a7080"))
+	var legend := _label("灰的动作 = 此刻用不上", Color("8c8266"))
 	legend.add_theme_font_size_override("font_size", 12)
 	hud.add_child(legend)
 
@@ -238,7 +249,7 @@ func _build_region_panel(region: int, piece_ids: Array) -> Control:
 	sb.bg_color = PALETTE[region % PALETTE.size()]
 	sb.set_corner_radius_all(8)
 	sb.set_content_margin_all(10)
-	sb.border_color = Color("0f1016")
+	sb.border_color = Color("120d07")
 	sb.set_border_width_all(2)
 	panel.add_theme_stylebox_override("panel", sb)
 
@@ -248,7 +259,7 @@ func _build_region_panel(region: int, piece_ids: Array) -> Control:
 
 	var name_lbl := Label.new()
 	name_lbl.text = board.region_names.get(region, "界域 %d" % region)
-	name_lbl.add_theme_color_override("font_color", Color("cdd2dc"))
+	name_lbl.add_theme_color_override("font_color", Color("dac9a6"))
 	vb.add_child(name_lbl)
 
 	var flow := HFlowContainer.new()
@@ -270,6 +281,13 @@ func _make_piece_button(pid: String) -> Button:
 	btn.clip_text = true
 	btn.text = "%s\n%s" % [p["glyph"], p["label"]]
 	btn.add_theme_font_size_override("font_size", 13)
+	# A selected piece wears a thick bright ring. The cue is border *thickness*,
+	# not hue — so it survives colour-blindness and keyboard-only play. (周棠, iter-07)
+	btn.add_theme_stylebox_override("normal", _piece_box(Color("241c12"), Color("4a3c28"), 1))
+	btn.add_theme_stylebox_override("hover", _piece_box(Color("2e2415"), Color("6a5436"), 1))
+	var ring := _piece_box(Color("3a2e1c"), Color("f0d89a"), 3)
+	btn.add_theme_stylebox_override("pressed", ring)
+	btn.add_theme_stylebox_override("focus", ring)
 	btn.toggled.connect(_on_piece_toggled.bind(pid))
 	return btn
 
@@ -423,6 +441,8 @@ func _toggle_piece(pid: String) -> void:
 	if _piece_widgets.has(pid):
 		var b: Button = _piece_widgets[pid]
 		b.button_pressed = not b.button_pressed  # emits toggled → updates _selected + guide
+		if b.is_inside_tree():
+			b.grab_focus()  # keyboard users see where they are (engine focus outline)
 
 
 # --- refresh / feedback -----------------------------------------------------
@@ -623,3 +643,32 @@ func _button(text: String, cb: Callable) -> Button:
 	b.text = text
 	b.pressed.connect(cb)
 	return b
+
+
+func _piece_box(bg: Color, border: Color, w: int) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.border_color = border
+	sb.set_border_width_all(w)
+	sb.set_corner_radius_all(6)
+	sb.set_content_margin_all(4)
+	return sb
+
+
+## A radial gradient — clear centre, warm-dark edges — for the aged-map vignette.
+func _make_vignette() -> GradientTexture2D:
+	var g := Gradient.new()
+	g.offsets = PackedFloat32Array([0.0, 0.6, 1.0])
+	g.colors = PackedColorArray([
+		Color(0.04, 0.03, 0.015, 0.0),
+		Color(0.04, 0.03, 0.015, 0.0),
+		Color(0.03, 0.02, 0.01, 0.5),
+	])
+	var tex := GradientTexture2D.new()
+	tex.gradient = g
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(1.0, 0.5)
+	tex.width = 256
+	tex.height = 256
+	return tex

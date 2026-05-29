@@ -151,3 +151,24 @@ func test_finale_offers_a_way_back() -> void:
 	view._on_overlay_btn()
 	assert_true(restarted[0], "pressing it restarts instead of stranding the player")
 	view.free()
+
+
+func test_region_palette_is_warm() -> void:
+	# 顾屿(iter-07): the cold blue-black "debugger" palette is now a warm aged map.
+	for c in TerritoryView.PALETTE:
+		assert_true(c.r >= c.b, "each region tone is warm (red ≥ blue), not a cold panel")
+
+
+func test_selected_piece_wears_a_focus_ring() -> void:
+	# 周棠(iter-07): selection must be visible without colour — a thick border ring,
+	# so keyboard-only and colour-blind players can see what they picked.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	var pid: String = view._ordered_pieces[0]
+	view._toggle_piece(pid)
+	var sb: StyleBox = view._piece_widgets[pid].get_theme_stylebox("pressed")
+	assert_true(sb is StyleBoxFlat, "selected piece has a custom pressed box")
+	assert_true((sb as StyleBoxFlat).get_border_width(SIDE_TOP) >= 3, "the ring is thick enough to read without colour")
+	view.free()
