@@ -15,7 +15,7 @@ const PLAN := [
 	[{"type": "territory", "terr": "the_seep"}],            # 学:用界遏制蔓延
 	# 教学全过后才放开分叉(有选择,但不会撞上没学过的招)
 	[{"type": "bazaar", "terr": ""}, {"type": "territory", "terr": "two_faced"}, {"type": "sanctum", "terr": ""}],
-	[{"type": "sanctum", "terr": ""}, {"type": "territory", "terr": "scroll_bond"}],
+	[{"type": "sanctum", "terr": ""}, {"type": "territory", "terr": "scroll_bond"}, {"type": "territory", "terr": "two_names"}],  # 分叉:名障镇(异名同心)
 	[{"type": "heartland", "terr": "the_sprawl"}],          # Boss:蔓沼
 ]
 

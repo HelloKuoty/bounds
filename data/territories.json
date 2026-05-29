@@ -68,6 +68,23 @@
       ]
     },
     {
+      "id": "two_names",
+      "name": "名障镇",
+      "intro": "这镇的名最会骗人:有名字一样的,其实各是各的,该分开;也有名字两异的,却本是一条命,该并作一束。认形色,莫认名。",
+      "concord_target": 2,
+      "blight_max": 30,
+      "insight": 3,
+      "pieces": [
+        {"id": "gong", "label": "谯楼的钟", "glyph": "钟", "meaning": "bell_time", "kind": "living"},
+        {"id": "goblet", "label": "席上的钟", "glyph": "钟", "meaning": "bell_cup", "kind": "token"},
+        {"id": "lamp", "label": "檐下的灯", "glyph": "灯", "meaning": "one_flame", "kind": "living"},
+        {"id": "fire", "label": "灶下的火", "glyph": "火", "meaning": "one_flame", "kind": "living"}
+      ],
+      "clusters": [
+        {"id": "one_flame", "label": "本是一盏", "members": ["lamp", "fire"]}
+      ]
+    },
+    {
       "id": "scroll_bond",
       "name": "契卷堂",
       "intro": "一总卷连着散页,却没人收拢;两纸「契」各执一词,偏要合成一桩事。",
