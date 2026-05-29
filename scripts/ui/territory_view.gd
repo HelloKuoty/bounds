@@ -19,6 +19,7 @@ const UI_TEXTS := [
 	"选中同属一束的几样,再分出去", "这些还没成束,无从拆起", "得给原束留一些",
 	"誊本只对筹码;请先选一枚筹码", "再选一样在目标区域里的东西", "共享请先选一样活物",
 	"再走一程", "灰的动作 = 此刻用不上", "形色相同 · 本是一物", "减弱动效",
+	"净化此地", "速净", "一气呵成", "秩序重临",
 ]
 const PALETTE := [
 	# Warm aged-map tones (sepia / ochre / terracotta / khaki / dusty-rose / moss),
@@ -35,6 +36,7 @@ const MEANING_COLORS := [
 	Color("4fc3b0"), Color("e0a85a"), Color("e07a8f"), Color("8f9ae0"), Color("9fcf6a"),
 ]
 const MEANING_SHAPES := ["circle", "square", "diamond", "triangle", "cross", "ring"]
+const STAR_NAMES := {1: "净化此地", 2: "速净", 3: "一气呵成"}  # mastery, shown only on clear (iter-27)
 
 # Guidance teaches the TOOL and HOW TO DIAGNOSE — never which pieces. The first time
 # a trouble appears, teach what the verb does + the heuristic to look for; once the
@@ -736,8 +738,10 @@ func _epiphany() -> void:
 
 func _on_cleared() -> void:
 	_release_bloom(0.42)  # the big exhale — the land is whole again
+	var s := board.stars()
+	GameState.record_stars(board.territory_id, s)  # best is remembered; revealed only here, never hinted
 	_overlay_mode = "clear"
-	_overlay_label.text = "秩序重临 — 此地已净"
+	_overlay_label.text = "%s\n秩序重临 · %s" % ["★".repeat(s), STAR_NAMES.get(s, "净化此地")]
 	_overlay_label.modulate = Color("9fe0a0")
 	_overlay_btn.text = "继续 →"
 	_overlay_btn.visible = true

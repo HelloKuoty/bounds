@@ -88,3 +88,34 @@ func test_knot_ford_is_an_interlocked_chain() -> void:
 	assert_eq(board.concord, 1, "a wall that opens a gap earns nothing")
 	board.place_translator(BoardState.FIELD_REGION, r)       # bridge the ferry → +1
 	assert_true(board.cleared, "unravelled in order: collect, split, then bridge the gap it opened")
+
+
+func test_stars_reward_a_clean_fast_solve() -> void:
+	# iter-27: optional mastery (hidden from guidance, shown on clear) — ★ cleared /
+	# ★★ within a turn / ★★★ before ever ending a turn (rot never climbed).
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	assert_eq(board.stars(), 0, "no stars before it is cleared")
+	board.draw_wall(["manifest"])  # solved in turn 0
+	assert_true(board.cleared, "cleared")
+	assert_eq(board.stars(), 3, "a turn-0 clean clear earns three stars")
+
+
+func test_dawdling_costs_stars() -> void:
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	board.advance_turn()
+	board.advance_turn()  # dawdle two turns — rot climbs, mastery slips
+	board.draw_wall(["manifest"])
+	assert_true(board.cleared, "still clears")
+	assert_eq(board.stars(), 1, "dawdling to turn 2 leaves only the base star")
+
+
+func test_gamestate_keeps_the_best_stars() -> void:
+	GameState.best_stars.clear()
+	GameState.record_stars("the_crossing", 2)
+	GameState.record_stars("the_crossing", 1)  # a worse run — ignored
+	assert_eq(int(GameState.best_stars["the_crossing"]), 2, "keeps the best, not the latest")
+	GameState.record_stars("the_crossing", 3)  # a better run — taken
+	assert_eq(int(GameState.best_stars["the_crossing"]), 3, "improves on a better run")
+	GameState.best_stars.clear()  # reset for other tests

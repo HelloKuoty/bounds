@@ -9,6 +9,7 @@ var province_id: String = "province_1"
 var current_node_id: String = ""
 var province_blight: int = 0
 var taught: Dictionary = {}  # verb -> true; drives the fading in-game guidance
+var best_stars: Dictionary = {}  # territory_id -> best stars (meta; persists across runs)
 
 
 func start_new_run() -> void:
@@ -31,6 +32,12 @@ func add_province_blight(amount: int) -> void:
 	province_blight += amount
 
 
+## Keep the best (highest) star rating ever earned on a territory — a replay hook.
+func record_stars(territory_id: String, n: int) -> void:
+	if n > int(best_stars.get(territory_id, 0)):
+		best_stars[territory_id] = n
+
+
 func run_lost() -> bool:
 	return province_blight >= PROVINCE_BLIGHT_CAP
 
@@ -48,6 +55,7 @@ func save() -> void:
 		"province_blight": province_blight,
 		"visited": RunManager.visited.keys(),
 		"taught": taught.keys(),
+		"best_stars": best_stars,
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f == null:
@@ -76,6 +84,11 @@ func load_save() -> bool:
 	taught.clear()
 	for verb in parsed.get("taught", []):
 		taught[str(verb)] = true
+	best_stars.clear()
+	var bs = parsed.get("best_stars", {})
+	if typeof(bs) == TYPE_DICTIONARY:
+		for k in bs:
+			best_stars[str(k)] = int(bs[k])
 	return true
 
 

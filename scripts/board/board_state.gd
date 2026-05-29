@@ -44,6 +44,7 @@ signal shared(piece_id: String, region: int)
 
 var territory_name := ""   # display strings, kept for the view
 var territory_intro := ""
+var territory_id := ""      # which territory loaded — for star / score bookkeeping
 
 # piece_id -> { id, label, glyph, meaning, kind, region:int, bundle:int }
 var pieces: Dictionary = {}
@@ -90,6 +91,7 @@ func load_territory(t: TerritoryData) -> void:
 	corruption_max = t.corruption_max
 	territory_name = t.name
 	territory_intro = t.intro
+	territory_id = t.id
 	clusters = t.clusters.duplicate(true)
 	links = t.links.duplicate(true)
 	demands = t.demands.duplicate(true)
@@ -503,6 +505,20 @@ func _settle(before: int) -> void:
 
 func can_afford() -> bool:
 	return insight >= ACTION_COST
+
+
+## Optional mastery rating, revealed only on clearing (never hinted in guidance):
+## pure efficiency by turns taken. ★ cleared · ★★ within a turn · ★★★ before ever
+## ending a turn (rot never got to climb). A cheap replay / agency hook. (iter-27)
+func stars() -> int:
+	if not cleared:
+		return 0
+	var s := 1
+	if turn <= 1:
+		s += 1
+	if turn == 0:
+		s += 1
+	return s
 
 
 func corrupted_count() -> int:

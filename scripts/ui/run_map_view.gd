@@ -80,7 +80,9 @@ func _node_button(nid: String, reachable: Array) -> Button:
 	var visited: bool = RunManager.visited.has(nid)
 	var is_reach: bool = nid in reachable
 	var label: String = TYPE_NAMES.get(n["type"], n["type"])
-	btn.text = ("✓ " if visited else "") + label
+	var earned: int = int(GameState.best_stars.get(n.get("territory_id", ""), 0))
+	var stars_str: String = ("  " + "★".repeat(earned)) if earned > 0 else ""
+	btn.text = ("✓ " if visited else "") + label + stars_str
 	if is_reach:
 		btn.pressed.connect(_on_node_pressed.bind(nid))
 	else:
