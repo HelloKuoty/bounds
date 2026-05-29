@@ -274,10 +274,12 @@ func _build_region_panel(region: int, piece_ids: Array) -> Control:
 	var panel := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = PALETTE[region % PALETTE.size()]
-	sb.set_corner_radius_all(8)
+	sb.set_corner_radius_all(12)
 	sb.set_content_margin_all(10)
-	sb.border_color = Color("120d07")
+	sb.border_color = Color("4a3a24")  # warm sepia ink line — a plot on an old map
 	sb.set_border_width_all(2)
+	sb.shadow_color = Color(0, 0, 0, 0.25)
+	sb.shadow_size = 3
 	panel.add_theme_stylebox_override("panel", sb)
 
 	var vb := VBoxContainer.new()
@@ -310,11 +312,13 @@ func _make_piece_button(pid: String) -> Button:
 	btn.add_theme_font_size_override("font_size", 13)
 	# A selected piece wears a thick bright ring. The cue is border *thickness*,
 	# not hue — so it survives colour-blindness and keyboard-only play. (周棠, iter-07)
-	btn.add_theme_stylebox_override("normal", _piece_box(Color("241c12"), Color("4a3c28"), 1))
-	btn.add_theme_stylebox_override("hover", _piece_box(Color("2e2415"), Color("6a5436"), 1))
-	var ring := _piece_box(Color("3a2e1c"), Color("f0d89a"), 3)
+	btn.add_theme_stylebox_override("normal", _piece_box(Color("33291a"), Color("1b1308"), 2))
+	btn.add_theme_stylebox_override("hover", _piece_box(Color("40331f"), Color("2a1e0e"), 2))
+	var ring := _piece_box(Color("4a3a22"), Color("f0d89a"), 3)
 	btn.add_theme_stylebox_override("pressed", ring)
 	btn.add_theme_stylebox_override("focus", ring)
+	for st in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		btn.add_theme_color_override(st, Color("ece0c4"))  # warm ink, like a stamped mark
 	btn.icon = _meaning_icon(p["meaning"])  # the essence badge — read the board, not the glyphs
 	btn.add_theme_constant_override("h_separation", 5)
 	btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -737,8 +741,11 @@ func _piece_box(bg: Color, border: Color, w: int) -> StyleBoxFlat:
 	sb.bg_color = bg
 	sb.border_color = border
 	sb.set_border_width_all(w)
-	sb.set_corner_radius_all(6)
-	sb.set_content_margin_all(4)
+	sb.set_corner_radius_all(14)  # a rounded seal/token, not a debug rectangle (顾屿, iter-14)
+	sb.set_content_margin_all(6)
+	sb.shadow_color = Color(0, 0, 0, 0.33)  # a little depth — the chip sits on the map
+	sb.shadow_size = 4
+	sb.shadow_offset = Vector2(1, 2)
 	return sb
 
 

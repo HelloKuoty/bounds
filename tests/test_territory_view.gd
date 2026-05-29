@@ -252,3 +252,18 @@ func test_release_bloom_is_safe_when_detached() -> void:
 	view._release_bloom(0.42)  # not inside tree → no tween, no change, no crash
 	assert_eq(view._flash.color.a, 0.0, "stays transparent when detached")
 	view.free()
+
+
+func test_pieces_look_like_seals_not_rectangles() -> void:
+	# 顾屿(iter-14): pieces read as rounded, shadowed seals sitting on the map —
+	# not flat debug rectangles. (Full illustrated art still needs a real artist.)
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	var sb: StyleBox = view._piece_widgets[view._ordered_pieces[0]].get_theme_stylebox("normal")
+	assert_true(sb is StyleBoxFlat, "a piece has a styled chip")
+	var f := sb as StyleBoxFlat
+	assert_true(f.get_corner_radius(CORNER_TOP_LEFT) >= 10, "rounded like a seal, not a sharp rectangle")
+	assert_true(f.shadow_size >= 1, "it casts a little shadow — it sits on the map")
+	view.free()
