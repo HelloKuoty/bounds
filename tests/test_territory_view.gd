@@ -115,6 +115,28 @@ func test_meters_read_as_numbers() -> void:
 	view.free()
 
 
+func test_keyboard_selects_pieces() -> void:
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	view._handle_key(KEY_1)
+	assert_eq(view._selected.size(), 1, "a number key selects a piece (no mouse needed)")
+	view._handle_key(KEY_1)
+	assert_eq(view._selected.size(), 0, "pressing it again deselects")
+	view.free()
+
+
+func test_keyboard_ends_turn() -> void:
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	view._handle_key(KEY_SPACE)
+	assert_eq(board.turn, 1, "space ends the turn from the keyboard")
+	view.free()
+
+
 func test_finale_offers_a_way_back() -> void:
 	# Regression: the ending must keep a usable button, or the player is stuck.
 	var board := BoardState.new()

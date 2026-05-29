@@ -54,6 +54,7 @@ var board: BoardState
 var taught: Dictionary = {}           # verb -> true; drives fading guidance
 var _selected: Dictionary = {}       # piece_id -> true
 var _piece_widgets: Dictionary = {}  # piece_id -> Button
+var _ordered_pieces: Array = []      # stable order, for number-key selection
 var _verb_btns: Dictionary = {}      # verb -> Button (lit only when applicable)
 var _title: Label
 var _intro: Label
@@ -202,6 +203,7 @@ func _build_hud() -> Control:
 func _rebuild() -> void:
 	_selected.clear()
 	_piece_widgets.clear()
+	_ordered_pieces.clear()
 	for c in _regions_box.get_children():
 		c.free()
 
@@ -247,6 +249,7 @@ func _build_region_panel(region: int, piece_ids: Array) -> Control:
 	for pid in piece_ids:
 		var btn := _make_piece_button(pid)
 		_piece_widgets[pid] = btn
+		_ordered_pieces.append(pid)
 		flow.add_child(btn)
 
 	return panel
@@ -382,6 +385,37 @@ func _on_share() -> void:
 func _on_end_turn() -> void:
 	board.advance_turn()
 	_rebuild()
+
+
+# --- keyboard play (accessibility) ------------------------------------------
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		_handle_key((event as InputEventKey).keycode)
+
+
+## Number keys 1–9 select pieces in order; Q/W/E/R/T/Y trigger the six actions;
+## Space ends the turn. Directly callable (no real key event) so it's testable.
+func _handle_key(keycode: int) -> void:
+	if keycode >= KEY_1 and keycode <= KEY_9:
+		var idx := keycode - KEY_1
+		if idx < _ordered_pieces.size():
+			_toggle_piece(_ordered_pieces[idx])
+		return
+	match keycode:
+		KEY_SPACE: _on_end_turn()
+		KEY_Q: _on_wall()
+		KEY_W: _on_bundle()
+		KEY_E: _on_split()
+		KEY_R: _on_translator()
+		KEY_T: _on_copy()
+		KEY_Y: _on_share()
+
+
+func _toggle_piece(pid: String) -> void:
+	if _piece_widgets.has(pid):
+		var b: Button = _piece_widgets[pid]
+		b.button_pressed = not b.button_pressed  # emits toggled → updates _selected + guide
 
 
 # --- refresh / feedback -----------------------------------------------------
