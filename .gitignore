@@ -1,0 +1,38 @@
+# Godot
+.godot/
+*.translation
+export.cfg
+export_presets.cfg
+.import/
+
+# Godot 4 specific
+*.tmp
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# User
+user://
+saves/
+
+# Build output
+build/
+exports/
+*.exe
+*.app
+*.x86_64
+
+# Logs
+*.log
+
+# Claude Code local overrides
+.claude/settings.local.json

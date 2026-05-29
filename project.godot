@@ -1,0 +1,34 @@
+; Engine configuration file.
+; Project: 界 / Bounds — an allegorical strategy-puzzle.
+; Edit via the editor UI when possible.
+
+config_version=5
+
+[application]
+
+config/name="Bounds"
+config/description="An allegory of order against entropy. (Working title: 界)"
+run/main_scene="res://scenes/main/Main.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/icon="res://icon.svg"
+boot_splash/show_image=false
+
+[autoload]
+
+EventBus="*res://scripts/autoload/event_bus.gd"
+TerritoryDatabase="*res://scripts/autoload/territory_database.gd"
+RunManager="*res://scripts/autoload/run_manager.gd"
+GameState="*res://scripts/autoload/game_state.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.07, 0.07, 0.09, 1)

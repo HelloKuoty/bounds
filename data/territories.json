@@ -1,0 +1,115 @@
+{
+  "_meta": {
+    "version": 2,
+    "notes": "Territory definitions. piece: id (unique within territory), label (shown to player), glyph (visible symbol), meaning (INTERNAL semantic key, never shown raw — drives instability), kind ('living'|'token'). clusters: groups that must be guarded together. links: pairs that must communicate (a wall between them needs a translator). concord_target should equal the territory's initial instability count. PLAYER-FACING STRINGS MUST CONTAIN NO SOFTWARE JARGON (CLAUDE.md iron rule; test_no_jargon.gd enforces).",
+    "piece_kinds": ["living", "token"]
+  },
+  "territories": [
+    {
+      "id": "the_crossing",
+      "name": "渡口集市",
+      "intro": "两个世界在此交汇,却共用同一个词。土地因此不安。",
+      "concord_target": 1,
+      "blight_max": 30,
+      "insight": 5,
+      "pieces": [
+        {"id": "trader", "label": "商人", "glyph": "商", "meaning": "trader", "kind": "living"},
+        {"id": "ledger", "label": "商人的账册", "glyph": "账", "meaning": "owed", "kind": "living"},
+        {"id": "courier", "label": "信使", "glyph": "信", "meaning": "courier", "kind": "living"},
+        {"id": "manifest", "label": "信使的清单", "glyph": "账", "meaning": "delivery", "kind": "living"},
+        {"id": "coin_a", "label": "钱币", "glyph": "钱", "meaning": "value", "kind": "token"},
+        {"id": "coin_b", "label": "钱币", "glyph": "钱", "meaning": "value", "kind": "token"}
+      ]
+    },
+    {
+      "id": "the_counting_house",
+      "name": "账房",
+      "intro": "满屋的记账各自飘着,没人把它们收拢成一本。",
+      "concord_target": 1,
+      "blight_max": 30,
+      "insight": 5,
+      "pieces": [
+        {"id": "total", "label": "总账", "glyph": "簿", "meaning": "book", "kind": "living"},
+        {"id": "rec1", "label": "一笔账", "glyph": "笔", "meaning": "entry", "kind": "living"},
+        {"id": "rec2", "label": "一笔账", "glyph": "笔", "meaning": "entry", "kind": "living"},
+        {"id": "rec3", "label": "一笔账", "glyph": "笔", "meaning": "entry", "kind": "living"}
+      ],
+      "clusters": [
+        {"id": "the_book", "label": "这本账", "members": ["total", "rec1", "rec2", "rec3"]}
+      ]
+    },
+    {
+      "id": "the_two_tongues",
+      "name": "两种话",
+      "intro": "城东城西都念'契',指的却不是一回事;偏偏他们要做成一笔买卖。",
+      "concord_target": 1,
+      "blight_max": 30,
+      "insight": 4,
+      "pieces": [
+        {"id": "east_deed", "label": "城东的契", "glyph": "契", "meaning": "deed", "kind": "living"},
+        {"id": "west_promise", "label": "城西的契", "glyph": "契", "meaning": "promise", "kind": "living"}
+      ],
+      "links": [
+        {"id": "the_deal", "label": "这笔买卖", "a": "east_deed", "b": "west_promise"}
+      ]
+    },
+    {
+      "id": "two_faced",
+      "name": "两面镇",
+      "intro": "镇上两样东西打着同一个「印」,意思却南辕北辙;两座「钟」也是。一刀若分得巧,或能一举两清。",
+      "concord_target": 2,
+      "blight_max": 30,
+      "insight": 2,
+      "pieces": [
+        {"id": "mayor", "label": "镇长的印", "glyph": "印", "meaning": "seal_office", "kind": "living"},
+        {"id": "crate", "label": "货箱的印", "glyph": "印", "meaning": "seal_mark", "kind": "token"},
+        {"id": "north", "label": "北坊的钟", "glyph": "钟", "meaning": "bell_time", "kind": "living"},
+        {"id": "cup", "label": "南坊的钟", "glyph": "钟", "meaning": "bell_cup", "kind": "token"}
+      ]
+    },
+    {
+      "id": "scroll_bond",
+      "name": "契卷堂",
+      "intro": "一总卷连着散页,却没人收拢;两纸「契」各执一词,偏要合成一桩事。",
+      "concord_target": 2,
+      "blight_max": 36,
+      "insight": 4,
+      "pieces": [
+        {"id": "sb_root", "label": "总卷", "glyph": "卷", "meaning": "master", "kind": "living"},
+        {"id": "sb_p1", "label": "一页", "glyph": "页", "meaning": "leaf", "kind": "living"},
+        {"id": "sb_p2", "label": "一页", "glyph": "页", "meaning": "leaf", "kind": "living"},
+        {"id": "sb_east", "label": "东头的契", "glyph": "契", "meaning": "bond", "kind": "living"},
+        {"id": "sb_west", "label": "西头的契", "glyph": "契", "meaning": "vow", "kind": "living"}
+      ],
+      "clusters": [
+        {"id": "sb_book", "label": "这一卷", "members": ["sb_root", "sb_p1", "sb_p2"]}
+      ],
+      "links": [
+        {"id": "sb_settle", "label": "这桩事", "a": "sb_east", "b": "sb_west"}
+      ]
+    },
+    {
+      "id": "the_sprawl",
+      "name": "蔓沼",
+      "intro": "墙塌了,名混了,万物正渗成一摊烂泥。趁它还剩一点形状,重新切开。",
+      "concord_target": 3,
+      "blight_max": 45,
+      "insight": 6,
+      "pieces": [
+        {"id": "s_title", "label": "镇长的名", "glyph": "名", "meaning": "title", "kind": "living"},
+        {"id": "s_label", "label": "货箱的名", "glyph": "名", "meaning": "label", "kind": "token"},
+        {"id": "s_root", "label": "一宗卷", "glyph": "卷", "meaning": "casefile", "kind": "living"},
+        {"id": "s_p1", "label": "一页", "glyph": "页", "meaning": "page", "kind": "living"},
+        {"id": "s_p2", "label": "一页", "glyph": "页", "meaning": "page", "kind": "living"},
+        {"id": "s_east", "label": "南市的银", "glyph": "银", "meaning": "silver_coin", "kind": "living"},
+        {"id": "s_west", "label": "北市的银", "glyph": "银", "meaning": "silver_ingot", "kind": "living"}
+      ],
+      "clusters": [
+        {"id": "the_casefile", "label": "这宗卷", "members": ["s_root", "s_p1", "s_p2"]}
+      ],
+      "links": [
+        {"id": "the_trade", "label": "南北通货", "a": "s_east", "b": "s_west"}
+      ]
+    }
+  ]
+}
