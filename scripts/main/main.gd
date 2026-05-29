@@ -18,7 +18,7 @@ func _ready() -> void:
 
 
 func _show_opening() -> void:
-	_show_message("界", Narrative.PREMISE, "启程", _on_start)
+	_show_message("界", Narrative.HOOK, "启程", _on_start)  # 短钩子,不拿大段前言挡路
 
 
 func _on_start() -> void:

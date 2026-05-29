@@ -123,6 +123,15 @@ func _auto_solve(board: BoardState) -> bool:
 					if living == "":
 						return false
 					board.share(living, r)
+			"exposed":
+				# wall every still-clean piece into one fresh region, away from the rot
+				var clean: Array = []
+				for pid in board.pieces:
+					if not board.pieces[pid].get("corrupted", false):
+						clean.append(pid)
+				if clean.is_empty():
+					return false
+				board.draw_wall(clean)
 			_:
 				return false
 	return board.cleared

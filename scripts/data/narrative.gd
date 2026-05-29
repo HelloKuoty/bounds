@@ -2,6 +2,9 @@ class_name Narrative extends RefCounted
 ## All the game's prose, in one place. Pure fable — never a word of jargon (see
 ## CLAUDE.md iron rule; test_no_jargon scans every string here).
 
+# 开场只用这一句短钩子(别拿大段文字挡在玩家和第一次点击之间);PREMISE 留作可选档案。
+const HOOK := "万物各有其名、各有其位。后来名混了、位塌了。\n你来,把它重新划分明。"
+
 const PREMISE := "很久以前,万物各有其名,名与物相称,界与界分明。后来人们贪图省事,把一个名安在许多物上,又拆掉了田垄、墙垣与门。于是名相混,物相融,分不清此地与彼地、此物与彼物,秩序一寸寸塌成了泥。\n你是最后一位司守,循着褪色的旧图走入这片正在腐朽的疆土——你不持刀,只重新为万物划清它该在的地方。"
 
 const ENDING := "你收起尺,回望。每一处都重新有了边,有了名,有了它独自的安静。\n原来撑住一个世界的,从来不是更大的力气,而是:让每样东西,只做它自己。"
@@ -28,7 +31,7 @@ const NARRATION := [
 
 
 static func all_strings() -> Array:
-	var out: Array = [PREMISE, ENDING]
+	var out: Array = [HOOK, PREMISE, ENDING]
 	for c in CHAPTERS:
 		out.append(c["name"])
 		out.append(c["line"])

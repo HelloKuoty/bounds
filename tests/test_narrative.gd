@@ -13,6 +13,6 @@ func test_four_chapters_and_some_narration() -> void:
 
 
 func test_all_strings_collects_everything() -> void:
-	# premise + ending + (4 chapters * 2) + narration
-	var expected := 2 + Narrative.CHAPTERS.size() * 2 + Narrative.NARRATION.size()
+	# hook + premise + ending + (4 chapters * 2) + narration
+	var expected := 3 + Narrative.CHAPTERS.size() * 2 + Narrative.NARRATION.size()
 	assert_eq(Narrative.all_strings().size(), expected, "all_strings gathers every line")

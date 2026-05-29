@@ -44,6 +44,25 @@ func test_at_least_three_paths_to_boss() -> void:
 	assert_true(total >= 3, "at least three routes to the boss (got %d)" % total)
 
 
+func test_teaching_is_a_forced_backbone() -> void:
+	# Every verb's teaching territory must sit on a single-node (unavoidable) layer,
+	# so a branching path can't skip learning an action you'll later need.
+	var by_layer := {}
+	for id in RunManager.nodes:
+		var ly: int = RunManager.node(id)["layer"]
+		if not by_layer.has(ly):
+			by_layer[ly] = []
+		by_layer[ly].append(id)
+	var forced := {}
+	for ly in by_layer:
+		if by_layer[ly].size() == 1:
+			var terr: String = RunManager.node(by_layer[ly][0])["territory_id"]
+			if terr != "":
+				forced[terr] = true
+	for must in ["the_crossing", "the_counting_house", "the_archive", "the_two_tongues", "two_markets", "shared_well", "the_seep"]:
+		assert_true(forced.has(must), "%s sits on the forced teaching backbone (unskippable)" % must)
+
+
 func _count_paths(id: String, memo: Dictionary) -> int:
 	if id == RunManager.boss_id:
 		return 1
