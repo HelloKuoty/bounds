@@ -76,6 +76,8 @@ var _last_concord := 0               # to detect "order won back" and exhale on 
 var _pang_layer: ColorRect           # cold dark pain-flash — the wince (林晚, iter-15)
 var _pang_tween: Tween
 static var reduce_motion := false     # accessibility: turn off the tremble (周棠, iter-17)
+var _content: MarginContainer        # the inset content — shaken on an epiphany (小鹿, iter-18)
+var _shake_tween: Tween
 var _title: Label
 var _intro: Label
 var _narration: Label
@@ -137,15 +139,15 @@ func _build_chrome() -> void:
 	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(vignette)
 
-	var margin := MarginContainer.new()
-	margin.set_anchors_preset(PRESET_FULL_RECT)
+	_content = MarginContainer.new()
+	_content.set_anchors_preset(PRESET_FULL_RECT)
 	for side in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
-		margin.add_theme_constant_override(side, 24)
-	add_child(margin)
+		_content.add_theme_constant_override(side, 24)
+	add_child(_content)
 
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 10)
-	margin.add_child(col)
+	_content.add_child(col)
 
 	_title = Label.new()
 	_title.add_theme_font_size_override("font_size", 28)
@@ -369,9 +371,12 @@ func _on_bundle() -> void:
 	if ids.is_empty():
 		_set_hint("先选中要收束的棋子")
 		return
+	var kin := _unites_hidden_kin(ids)  # uniting same-essence / different-name pieces = seeing through the name
 	board.bundle(ids, ids[0])
 	taught["bundle"] = true
 	_set_hint("")
+	if kin:
+		_epiphany()
 	_rebuild()
 
 
@@ -721,6 +726,31 @@ func _pang(strength: float) -> void:
 	_pang_tween = create_tween()
 	_pang_tween.tween_property(_pang_layer, "color:a", strength, 0.10)
 	_pang_tween.tween_property(_pang_layer, "color:a", 0.0, 0.60)
+
+
+## True when bundling these ids unites ≥2 pieces of the SAME essence under DIFFERENT
+## names — the "seeing through the name" moment (the hidden kin of 名障镇). (小鹿, iter-18)
+func _unites_hidden_kin(ids: Array) -> bool:
+	for i in ids.size():
+		for j in range(i + 1, ids.size()):
+			var a: Dictionary = board.pieces[ids[i]]
+			var b: Dictionary = board.pieces[ids[j]]
+			if a["meaning"] == b["meaning"] and a["glyph"] != b["glyph"]:
+				return true
+	return false
+
+
+## The epiphany beat: a brighter exhale + a short shake — distinct from an ordinary
+## resolve, so recognising kin under two names lands as a moment. Detached-safe.
+func _epiphany() -> void:
+	_release_bloom(0.6)
+	if _content == null or not is_inside_tree():
+		return
+	if _shake_tween != null and _shake_tween.is_valid():
+		_shake_tween.kill()
+	_shake_tween = create_tween()
+	for amt in [9.0, -6.0, 4.0, -2.0, 0.0]:
+		_shake_tween.tween_property(_content, "position:x", amt, 0.05)
 
 
 func _on_cleared() -> void:

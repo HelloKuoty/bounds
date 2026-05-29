@@ -308,6 +308,28 @@ func test_reduce_motion_holds_pieces_still() -> void:
 	view.free()
 
 
+func test_hidden_kin_detection() -> void:
+	# 小鹿(iter-18): uniting pieces with the SAME essence but DIFFERENT names is the
+	# "seeing through the name" moment — it earns a distinct epiphany beat.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("two_names"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	assert_true(view._unites_hidden_kin(["lamp", "fire"]), "lamp+fire: one essence, two names → hidden kin")
+	assert_false(view._unites_hidden_kin(["gong", "goblet"]), "gong+goblet: one name, two essences → not kin")
+	view.free()
+
+
+func test_epiphany_is_safe_when_detached() -> void:
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("two_names"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	view._epiphany()  # detached → bloom + shake both no-op, no crash
+	assert_eq(view._flash.color.a, 0.0, "no bloom when detached")
+	view.free()
+
+
 func test_parchment_shader_loads() -> void:
 	# 顾屿(iter-16): the backdrop is procedural parchment (a shader, no texture asset).
 	# (Visual result needs a real GPU; this proves the resource loads & wires up.)
