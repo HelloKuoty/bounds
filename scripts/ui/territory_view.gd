@@ -523,20 +523,31 @@ func _process(delta: float) -> void:
 	if _unstable_widgets.is_empty():
 		return
 	_anim_t += delta
+	var intensity := _distress_intensity()
 	for i in _unstable_widgets.size():
 		var b: Button = _unstable_widgets[i]
 		if not is_instance_valid(b):
 			continue
-		var tr := _distress_transform(_anim_t, i * 1.3)
+		var tr := _distress_transform(_anim_t, i * 1.3, intensity)
 		b.pivot_offset = b.size * 0.5
 		b.rotation = tr["rotation"]
 		b.scale = tr["scale"]
 
 
-## Pure (testable) distress transform: a quick small tremble + a slow breath.
-func _distress_transform(t: float, phase: float) -> Dictionary:
-	var rot := sin(t * 17.0 + phase) * 0.045
-	var sc := 1.0 + sin(t * 5.0 + phase) * 0.035
+## How violently the land trembles — grows as rot nears collapse. A non-colour
+## reading of "how close to death" (the danger meter for colour-blind play, since
+## a red bar's brightness is exactly what colour-blindness can't read). (周棠, iter-11)
+func _distress_intensity() -> float:
+	if board == null or board.blight_max <= 0:
+		return 1.0
+	return 1.0 + clampf(float(board.rot) / float(board.blight_max), 0.0, 1.0) * 1.6
+
+
+## Pure (testable) distress transform: a quick small tremble + a slow breath,
+## amplified by `intensity` (1.0 = calm … ~2.6 = near collapse).
+func _distress_transform(t: float, phase: float, intensity: float = 1.0) -> Dictionary:
+	var rot := sin(t * 17.0 + phase) * 0.045 * intensity
+	var sc := 1.0 + sin(t * 5.0 + phase) * 0.035 * intensity
 	return {"rotation": rot, "scale": Vector2(sc, sc)}
 
 

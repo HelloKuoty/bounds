@@ -214,3 +214,19 @@ func test_distress_transform_trembles_within_bounds() -> void:
 	assert_true(a["rotation"] != b["rotation"], "the tremble animates over time")
 	assert_true(absf(a["rotation"]) <= 0.1, "the tremble stays subtle (small angle)")
 	view.free()
+
+
+func test_distress_grows_with_danger() -> void:
+	# 周棠(iter-11): the tremble intensifies as collapse nears — a non-colour read
+	# of "how close to death" (colour-blind can't judge a red bar's brightness).
+	var view := TerritoryView.new()
+	var calm := view._distress_transform(0.05, 0.0, 1.0)
+	var dire := view._distress_transform(0.05, 0.0, 2.5)
+	assert_true(absf(dire["rotation"]) > absf(calm["rotation"]), "more danger → a wilder tremble")
+	view.free()
+
+
+func test_distress_intensity_calm_without_board() -> void:
+	var view := TerritoryView.new()
+	assert_eq(view._distress_intensity(), 1.0, "calm by default when there's no board")
+	view.free()
