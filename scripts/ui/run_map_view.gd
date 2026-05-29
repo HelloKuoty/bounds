@@ -24,9 +24,14 @@ func _build() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
 
 	var bg := ColorRect.new()
-	bg.color = Color("15110a")  # warm aged-map dark (matches the territory view)
+	bg.color = Color("15110a")  # warm fallback if the shader can't load
 	bg.set_anchors_preset(PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var psh := load("res://shaders/parchment.gdshader") as Shader
+	if psh != null:
+		var pm := ShaderMaterial.new()
+		pm.shader = psh
+		bg.material = pm  # same procedural parchment as the territory view
 	add_child(bg)
 
 	var margin := MarginContainer.new()

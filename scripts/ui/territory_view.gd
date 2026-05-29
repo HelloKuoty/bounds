@@ -121,9 +121,10 @@ func _build_chrome() -> void:
 	set_anchors_preset(PRESET_FULL_RECT)
 
 	var bg := ColorRect.new()
-	bg.color = Color("17120b")  # warm aged-map dark, not cold debug black
+	bg.color = Color("17120b")  # warm fallback if the shader can't load
 	bg.set_anchors_preset(PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg.material = _parchment_material()  # procedural aged parchment (顾屿, iter-16)
 	add_child(bg)
 
 	# A soft warm vignette behind the content — darkened corners read as an aged
@@ -850,3 +851,14 @@ func _draw_shape(color: Color, shape: String) -> ImageTexture:
 			if inside:
 				img.set_pixel(x, y, color)
 	return ImageTexture.create_from_image(img)
+
+
+## Procedural aged-parchment backdrop material (shader, no texture asset). Returns
+## null if the shader can't load, leaving the flat warm fallback colour. (顾屿, iter-16)
+func _parchment_material() -> ShaderMaterial:
+	var sh := load("res://shaders/parchment.gdshader") as Shader
+	if sh == null:
+		return null
+	var m := ShaderMaterial.new()
+	m.shader = sh
+	return m

@@ -277,6 +277,27 @@ func test_pang_is_safe_when_detached() -> void:
 	view.free()
 
 
+func test_parchment_shader_loads() -> void:
+	# 顾屿(iter-16): the backdrop is procedural parchment (a shader, no texture asset).
+	# (Visual result needs a real GPU; this proves the resource loads & wires up.)
+	var sh := load("res://shaders/parchment.gdshader")
+	assert_true(sh is Shader, "the parchment shader resource loads")
+
+
+func test_background_uses_the_parchment_shader() -> void:
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	var found := false
+	for c in view.get_children():
+		if c is ColorRect and c.material is ShaderMaterial:
+			found = true
+			break
+	assert_true(found, "the backdrop is painted by a parchment shader, not a flat fill")
+	view.free()
+
+
 func test_pieces_look_like_seals_not_rectangles() -> void:
 	# 顾屿(iter-14): pieces read as rounded, shadowed seals sitting on the map —
 	# not flat debug rectangles. (Full illustrated art still needs a real artist.)
