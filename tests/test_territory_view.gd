@@ -277,6 +277,37 @@ func test_pang_is_safe_when_detached() -> void:
 	view.free()
 
 
+func test_instability_mark_grades_with_danger() -> void:
+	# 周棠(iter-17): severity readable without colour or animation — !/!!/!!! by danger.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	var calm: String = view._piece_widgets["ledger"].text
+	board.rot = board.blight_max  # at the brink
+	view._rebuild()
+	var dire: String = view._piece_widgets["ledger"].text
+	assert_true(dire.count("！") > calm.count("！"), "more danger → more ! marks (a nameable threshold)")
+	view.free()
+
+
+func test_reduce_motion_holds_pieces_still() -> void:
+	# 周棠(iter-17): a motion-reduction toggle for vestibular-sensitive players; the
+	# static !/!!/!!! marks still carry severity, so nothing is lost by turning it off.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	for b in view._unstable_widgets:
+		b.rotation = 0.5  # pretend mid-tremble
+	TerritoryView.reduce_motion = true
+	view._process(0.1)
+	for b in view._unstable_widgets:
+		assert_eq(b.rotation, 0.0, "motion-reduced → the tremble is held at rest")
+	TerritoryView.reduce_motion = false  # reset for other tests
+	view.free()
+
+
 func test_parchment_shader_loads() -> void:
 	# 顾屿(iter-16): the backdrop is procedural parchment (a shader, no texture asset).
 	# (Visual result needs a real GPU; this proves the resource loads & wires up.)

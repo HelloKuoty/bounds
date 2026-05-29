@@ -18,7 +18,7 @@ const UI_TEXTS := [
 	"心力已尽 —— 切得太多了",
 	"选中同属一束的几样,再分出去", "这些还没成束,无从拆起", "得给原束留一些",
 	"誊本只对筹码;请先选一枚筹码", "再选一样在目标区域里的东西", "共享请先选一样活物",
-	"再走一程", "灰的动作 = 此刻用不上", "形色相同 · 本是一物",
+	"再走一程", "灰的动作 = 此刻用不上", "形色相同 · 本是一物", "减弱动效",
 ]
 const PALETTE := [
 	# Warm aged-map tones (sepia / ochre / terracotta / khaki / dusty-rose / moss),
@@ -75,6 +75,7 @@ var _flash_tween: Tween
 var _last_concord := 0               # to detect "order won back" and exhale on it
 var _pang_layer: ColorRect           # cold dark pain-flash — the wince (林晚, iter-15)
 var _pang_tween: Tween
+static var reduce_motion := false     # accessibility: turn off the tremble (周棠, iter-17)
 var _title: Label
 var _intro: Label
 var _narration: Label
@@ -244,6 +245,13 @@ func _build_hud() -> Control:
 	var legend2 := _label("形色相同 · 本是一物", Color("8c8266"))
 	legend2.add_theme_font_size_override("font_size", 12)
 	hud.add_child(legend2)
+
+	var motion := CheckButton.new()
+	motion.text = "减弱动效"
+	motion.button_pressed = reduce_motion
+	motion.add_theme_font_size_override("font_size", 12)
+	motion.toggled.connect(func(on: bool): TerritoryView.reduce_motion = on)
+	hud.add_child(motion)
 
 	_hint = Label.new()
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -524,8 +532,7 @@ func _highlight_instabilities() -> void:
 		if board.pieces[pid].get("corrupted", false) and _piece_widgets.has(pid):
 			var b: Button = _piece_widgets[pid]
 			b.modulate = TINT_CORRUPT
-			if not b.text.begins_with("×"):
-				b.text = "×" + b.text.trim_prefix("！")
+			b.text = "×" + _strip_marks(b.text)
 
 
 func _tint(pid: String) -> void:
@@ -535,8 +542,9 @@ func _tint(pid: String) -> void:
 	b.modulate = TINT_UNSTABLE
 	if not _unstable_widgets.has(b):
 		_unstable_widgets.append(b)  # the world reacts: this piece will tremble (林晚, iter-09)
-	if not b.text.begins_with("！") and not b.text.begins_with("×"):
-		b.text = "！" + b.text  # non-colour cue: a mark, not just red (for colour-blind play)
+	# graded non-colour cue: !/!!/!!! by how near collapse — a nameable severity that
+	# needs neither colour nor animation to read (周棠, iter-17)
+	b.text = _severity_marks() + _strip_marks(b.text)
 
 
 ## The world reacts to trouble: an unstable piece trembles and breathes — alive and
@@ -544,6 +552,12 @@ func _tint(pid: String) -> void:
 ## stays as a still, colour-blind-safe backup. (林晚, iter-09)
 func _process(delta: float) -> void:
 	if _unstable_widgets.is_empty():
+		return
+	if reduce_motion:  # vestibular-safe: hold pieces still; the !/!!/!!! marks carry severity
+		for b in _unstable_widgets:
+			if is_instance_valid(b):
+				b.rotation = 0.0
+				b.scale = Vector2.ONE
 		return
 	_anim_t += delta
 	var intensity := _distress_intensity()
@@ -572,6 +586,26 @@ func _distress_transform(t: float, phase: float, intensity: float = 1.0) -> Dict
 	var rot := sin(t * 17.0 + phase) * 0.045 * intensity
 	var sc := 1.0 + sin(t * 5.0 + phase) * 0.035 * intensity
 	return {"rotation": rot, "scale": Vector2(sc, sc)}
+
+
+## Severity as a nameable, colour-free, motion-free mark: !/!!/!!! by how near
+## the land is to collapse. The discrete read周棠 asked for. (iter-17)
+func _severity_marks() -> String:
+	if board == null or board.blight_max <= 0:
+		return "！"
+	var r := float(board.rot) / float(board.blight_max)
+	if r >= 0.66:
+		return "！！！"
+	elif r >= 0.33:
+		return "！！"
+	return "！"
+
+
+func _strip_marks(t: String) -> String:
+	var s := t
+	while s.begins_with("！") or s.begins_with("×"):
+		s = s.substr(1)
+	return s
 
 
 func _refresh_meters() -> void:
