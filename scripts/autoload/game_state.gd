@@ -10,12 +10,14 @@ var current_node_id: String = ""
 var province_blight: int = 0
 var taught: Dictionary = {}  # verb -> true; drives the fading in-game guidance
 var best_stars: Dictionary = {}  # territory_id -> best stars (meta; persists across runs)
+var run_seed: int = 0  # mixes into seeded territories so each run's trial differs
 
 
 func start_new_run() -> void:
 	province_id = "province_1"
 	current_node_id = ""
 	province_blight = 0
+	run_seed = randi()
 	taught.clear()
 	RunManager.generate_map(province_id)
 	EventBus.run_started.emit()
@@ -56,6 +58,7 @@ func save() -> void:
 		"visited": RunManager.visited.keys(),
 		"taught": taught.keys(),
 		"best_stars": best_stars,
+		"run_seed": run_seed,
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f == null:
@@ -78,6 +81,7 @@ func load_save() -> bool:
 	province_id = parsed.get("province_id", "province_1")
 	current_node_id = parsed.get("current_node_id", "")
 	province_blight = int(parsed.get("province_blight", 0))
+	run_seed = int(parsed.get("run_seed", 0))
 	RunManager.generate_map(province_id)
 	for vid in parsed.get("visited", []):
 		RunManager.visited[str(vid)] = true

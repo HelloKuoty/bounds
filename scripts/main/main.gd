@@ -48,7 +48,13 @@ func _enter_node(node_id: String) -> void:
 
 func _open_territory(node_id: String) -> void:
 	_clear_screens()
-	var t := TerritoryDatabase.get_territory(RunManager.node(node_id)["territory_id"])
+	var tid: String = RunManager.node(node_id)["territory_id"]
+	var t: TerritoryData
+	if TerritoryDatabase.has_territory(tid):
+		t = TerritoryDatabase.get_territory(tid)
+	else:
+		# a seeded trial — a fresh, solvable board each run (stable on retry within a run)
+		t = TerritoryGen.make(hash(node_id) ^ GameState.run_seed)
 	var board := BoardState.new()
 	board.load_territory(t)
 	_view = preload("res://scenes/territory/TerritoryView.tscn").instantiate()
