@@ -14,11 +14,15 @@ var _narr_i := 0
 
 func _ready() -> void:
 	print("=== 界 / Bounds ===")
+	_show_opening()
+
+
+func _show_opening() -> void:
 	_show_message("界", Narrative.PREMISE, "启程", _on_start)
 
 
 func _on_start() -> void:
-	GameState.start_new_run()
+	GameState.start_new_run()  # also resets what's been "taught"
 	_show_map()
 
 
@@ -52,6 +56,7 @@ func _open_territory(node_id: String) -> void:
 	_view.setup(board, GameState.taught, _next_narration())
 	_view.continue_pressed.connect(_on_territory_cleared.bind(node_id))
 	_view.retry_pressed.connect(_open_territory.bind(node_id))
+	_view.restart_pressed.connect(_on_restart)
 	print("[Main] %s" % t.name)
 
 
@@ -60,6 +65,12 @@ func _on_territory_cleared(node_id: String) -> void:
 		_view.show_finale(Narrative.ENDING)
 	else:
 		_show_map()
+
+
+func _on_restart() -> void:
+	# After the ending: back to the very beginning, fresh.
+	_narr_i = 0
+	_show_opening()
 
 
 # --- generic message overlay ------------------------------------------------

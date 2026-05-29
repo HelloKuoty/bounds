@@ -67,3 +67,19 @@ func test_guide_fades_once_taught() -> void:
 	view.setup(board, {"wall": true})  # learned walls earlier
 	assert_eq(view._guide.text, TerritoryView.G_NUDGE_OVERLOAD % "账", "faded to a nudge once learned")
 	view.free()
+
+
+func test_finale_offers_a_way_back() -> void:
+	# Regression: the ending must keep a usable button, or the player is stuck.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	var restarted := [false]
+	view.restart_pressed.connect(func(): restarted[0] = true)
+	view.show_finale("done")
+	assert_true(view._overlay.visible, "the ending overlay shows")
+	assert_true(view._overlay_btn.visible, "and it keeps a button to move on")
+	view._on_overlay_btn()
+	assert_true(restarted[0], "pressing it restarts instead of stranding the player")
+	view.free()

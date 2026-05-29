@@ -18,6 +18,7 @@ const UI_TEXTS := [
 	"心力已尽 —— 切得太多了",
 	"选中同属一束的几样,再分出去", "这些还没成束,无从拆起", "得给原束留一些",
 	"誊本只对筹码;请先选一枚筹码", "再选一样在目标区域里的东西", "共享请先选一样活物",
+	"再走一程",
 ]
 const PALETTE := [
 	Color("23303f"), Color("3a2f23"), Color("23402f"), Color("3a2336"), Color("2f2f44"), Color("403a23"),
@@ -47,6 +48,7 @@ const G_EXPOSED_NUDGE := "红斑近了 —— 把好东西围走。"
 
 signal continue_pressed
 signal retry_pressed
+signal restart_pressed
 
 var board: BoardState
 var taught: Dictionary = {}           # verb -> true; drives fading guidance
@@ -493,10 +495,13 @@ func _on_action_refused(_reason: String) -> void:
 
 
 func _on_overlay_btn() -> void:
-	if _overlay_mode == "clear":
-		continue_pressed.emit()
-	else:
-		retry_pressed.emit()
+	match _overlay_mode:
+		"clear":
+			continue_pressed.emit()
+		"finale":
+			restart_pressed.emit()
+		_:
+			retry_pressed.emit()
 
 
 ## Called by the orchestrator after the final territory is cleared.
@@ -504,7 +509,8 @@ func show_finale(text: String = "四境皆清 · 国土重归秩序") -> void:
 	_overlay_mode = "finale"
 	_overlay_label.text = text
 	_overlay_label.modulate = Color("e8d8a0")
-	_overlay_btn.visible = false
+	_overlay_btn.text = "再走一程"
+	_overlay_btn.visible = true
 	_overlay.visible = true
 
 
