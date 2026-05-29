@@ -18,7 +18,7 @@ const UI_TEXTS := [
 	"心力已尽 —— 切得太多了",
 	"选中同属一束的几样,再分出去", "这些还没成束,无从拆起", "得给原束留一些",
 	"誊本只对筹码;请先选一枚筹码", "再选一样在目标区域里的东西", "共享请先选一样活物",
-	"再走一程",
+	"再走一程", "灰的动作 = 此刻用不上",
 ]
 const PALETTE := [
 	Color("23303f"), Color("3a2f23"), Color("23402f"), Color("3a2336"), Color("2f2f44"), Color("403a23"),
@@ -186,6 +186,10 @@ func _build_hud() -> Control:
 	for key in ["wall", "bundle", "split", "translator", "copy", "share"]:
 		hud.add_child(_verb_btns[key])
 	hud.add_child(_button("结束回合", _on_end_turn))
+
+	var legend := _label("灰的动作 = 此刻用不上", Color("6a7080"))
+	legend.add_theme_font_size_override("font_size", 12)
+	hud.add_child(legend)
 
 	_hint = Label.new()
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
