@@ -230,3 +230,25 @@ func test_distress_intensity_calm_without_board() -> void:
 	var view := TerritoryView.new()
 	assert_eq(view._distress_intensity(), 1.0, "calm by default when there's no board")
 	view.free()
+
+
+func test_release_flash_rests_transparent() -> void:
+	# 林晚(iter-12): the "release" surface — a warm exhale of light when order returns.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	assert_true(view._flash is ColorRect, "there is a release-flash layer")
+	assert_eq(view._flash.color.a, 0.0, "it rests fully transparent (only blooms on release)")
+	view.free()
+
+
+func test_release_bloom_is_safe_when_detached() -> void:
+	# Detached/headless: the bloom is a no-op, never an error, leaves the rest state.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	view._release_bloom(0.42)  # not inside tree → no tween, no change, no crash
+	assert_eq(view._flash.color.a, 0.0, "stays transparent when detached")
+	view.free()

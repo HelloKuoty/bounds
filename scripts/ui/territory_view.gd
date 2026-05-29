@@ -70,6 +70,9 @@ var _meaning_index: Dictionary = {}  # meaning -> stable int (drives badge colou
 var _icon_cache: Dictionary = {}     # index -> ImageTexture (one badge per essence)
 var _unstable_widgets: Array = []    # buttons currently trembling with distress (林晚)
 var _anim_t := 0.0
+var _flash: ColorRect                # warm release-flash layer — the exhale (林晚, iter-12)
+var _flash_tween: Tween
+var _last_concord := 0               # to detect "order won back" and exhale on it
 var _title: Label
 var _intro: Label
 var _narration: Label
@@ -93,6 +96,7 @@ func setup(b: BoardState, p_taught: Dictionary = {}, p_narration: String = "") -
 	board = b
 	taught = p_taught
 	_narration_text = p_narration
+	_last_concord = b.concord
 	if not _built:
 		_build_chrome()
 		_built = true
@@ -170,6 +174,12 @@ func _build_chrome() -> void:
 	body.add_child(_regions_box)
 
 	body.add_child(_build_hud())
+
+	_flash = ColorRect.new()
+	_flash.color = Color(1.0, 0.95, 0.78, 0.0)  # warm light; alpha blooms briefly on release
+	_flash.set_anchors_preset(PRESET_FULL_RECT)
+	_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_flash)
 
 	_overlay = CenterContainer.new()
 	_overlay.set_anchors_preset(PRESET_FULL_RECT)
@@ -632,10 +642,28 @@ func _set_verb(key: String, enabled: bool) -> void:
 
 
 func _on_meter_changed(_v: int) -> void:
+	if board.concord > _last_concord:
+		_release_bloom(0.16)  # a small exhale each time a little order is won back
+	_last_concord = board.concord
 	_refresh_meters()
 
 
+## A warm exhale of light — the land breathing out as order returns. The "release"
+## that closes pain → insight → relief. Re-entrant-safe; no-op when detached so it
+## never touches headless or crashes a test. (林晚, iter-12)
+func _release_bloom(strength: float) -> void:
+	if _flash == null or not is_inside_tree():
+		return
+	if _flash_tween != null and _flash_tween.is_valid():
+		_flash_tween.kill()
+	_flash.color.a = 0.0
+	_flash_tween = create_tween()
+	_flash_tween.tween_property(_flash, "color:a", strength, 0.12)
+	_flash_tween.tween_property(_flash, "color:a", 0.0, 0.45)
+
+
 func _on_cleared() -> void:
+	_release_bloom(0.42)  # the big exhale — the land is whole again
 	_overlay_mode = "clear"
 	_overlay_label.text = "秩序重临 — 此地已净"
 	_overlay_label.modulate = Color("9fe0a0")
@@ -675,6 +703,7 @@ func _on_overlay_btn() -> void:
 
 ## Called by the orchestrator after the final territory is cleared.
 func show_finale(text: String = "四境皆清 · 国土重归秩序") -> void:
+	_release_bloom(0.5)
 	_overlay_mode = "finale"
 	_overlay_label.text = text
 	_overlay_label.modulate = Color("e8d8a0")
