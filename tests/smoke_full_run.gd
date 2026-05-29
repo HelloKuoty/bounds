@@ -38,7 +38,9 @@ func _run() -> bool:
 		gs.enter_node(nxt)
 		current = nxt
 		if node["territory_id"] != "":
-			var t := tdb.get_territory(node["territory_id"]) as TerritoryData
+			var tid: String = node["territory_id"]
+			# a seeded trial (id not in the database) is generated; everything else loads
+			var t: TerritoryData = tdb.get_territory(tid) if tdb.has_territory(tid) else TerritoryGen.make(hash(nxt))
 			var board := BoardState.new()
 			board.load_territory(t)
 			if not _auto_solve(board):

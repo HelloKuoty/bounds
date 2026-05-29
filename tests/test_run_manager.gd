@@ -63,6 +63,21 @@ func test_teaching_is_a_forced_backbone() -> void:
 		assert_true(forced.has(must), "%s sits on the forced teaching backbone (unskippable)" % must)
 
 
+func test_trial_is_on_every_path() -> void:
+	# iter-30: the random trial (+ 心法) must not be skippable — it sits on a forced
+	# single-node layer, so every route to the boss passes through it.
+	var count_by_layer := {}
+	for id in RunManager.nodes:
+		var ly: int = RunManager.node(id)["layer"]
+		count_by_layer[ly] = int(count_by_layer.get(ly, 0)) + 1
+	var trial_forced := false
+	for id in RunManager.nodes:
+		var n := RunManager.node(id)
+		if n["territory_id"] == "trial" and count_by_layer[n["layer"]] == 1:
+			trial_forced = true
+	assert_true(trial_forced, "a trial sits on a forced single-node layer — unavoidable")
+
+
 func _count_paths(id: String, memo: Dictionary) -> int:
 	if id == RunManager.boss_id:
 		return 1

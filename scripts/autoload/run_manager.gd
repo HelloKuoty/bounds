@@ -15,7 +15,8 @@ const PLAN := [
 	[{"type": "territory", "terr": "the_seep"}],            # 学:用界遏制蔓延
 	# 教学全过后才放开分叉(有选择,但不会撞上没学过的招)
 	[{"type": "bazaar", "terr": ""}, {"type": "territory", "terr": "two_faced"}, {"type": "sanctum", "terr": ""}, {"type": "territory", "terr": "knot_ford"}],  # 分叉:连环渡(交错连环)
-	[{"type": "sanctum", "terr": ""}, {"type": "territory", "terr": "scroll_bond"}, {"type": "territory", "terr": "two_names"}, {"type": "territory", "terr": "trial"}],  # 分叉:名障镇 + 试炼之地(种子化随机)
+	[{"type": "sanctum", "terr": ""}, {"type": "territory", "terr": "scroll_bond"}, {"type": "territory", "terr": "two_names"}],  # 分叉:契卷堂 / 名障镇
+	[{"type": "territory", "terr": "trial"}],               # 强制:试炼之地(随机布局 + 心法),每条 run 必经,不再可绕
 	[{"type": "heartland", "terr": "the_sprawl"}],          # Boss:蔓沼
 ]
 
