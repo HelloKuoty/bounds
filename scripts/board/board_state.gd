@@ -382,6 +382,11 @@ func _has_translator(a: int, b: int) -> bool:
 	return false
 
 
+## Public: is there a translator bridging these two regions? (for the herald viz)
+func bridged(region_a: int, region_b: int) -> bool:
+	return _has_translator(region_a, region_b)
+
+
 # --- Verb: heralds (ripples that chain) -------------------------------------
 
 ## Register that `subscriber_piece` reacts to `event_name`, optionally sending

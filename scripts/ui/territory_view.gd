@@ -75,6 +75,9 @@ var _pang_tween: Tween
 static var reduce_motion := false     # accessibility: turn off the tremble (周棠, iter-17)
 var _content: MarginContainer        # the inset content — shaken on an epiphany (小鹿, iter-18)
 var _shake_tween: Tween
+var _herald_line: Line2D             # the thread a 令 runs along (传令链, iter-32)
+var _herald_dot: ColorRect           # the travelling signal; stops at a break
+var _herald_t := 0.0
 var _title: Label
 var _intro: Label
 var _narration: Label
@@ -189,6 +192,19 @@ func _build_chrome() -> void:
 	_pang_layer.set_anchors_preset(PRESET_FULL_RECT)
 	_pang_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_pang_layer)
+
+	# 传令链 viz: a warm thread the 令 runs along + a travelling signal dot (iter-32)
+	_herald_line = Line2D.new()
+	_herald_line.width = 3.0
+	_herald_line.default_color = Color(0.95, 0.85, 0.55, 0.5)
+	_herald_line.visible = false
+	add_child(_herald_line)
+	_herald_dot = ColorRect.new()
+	_herald_dot.color = Color(1.0, 0.96, 0.74)
+	_herald_dot.size = Vector2(12, 12)
+	_herald_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_herald_dot.visible = false
+	add_child(_herald_dot)
 
 	_overlay = CenterContainer.new()
 	_overlay.set_anchors_preset(PRESET_FULL_RECT)
@@ -559,6 +575,7 @@ func _tint(pid: String) -> void:
 ## in distress. The feedback IS the piece, not a label pinned on it; the "！" mark
 ## stays as a still, colour-blind-safe backup. (林晚, iter-09)
 func _process(delta: float) -> void:
+	_update_herald_viz(delta)
 	if _unstable_widgets.is_empty():
 		return
 	if reduce_motion:  # vestibular-safe: hold pieces still; the !/!!/!!! marks carry severity
@@ -594,6 +611,57 @@ func _distress_transform(t: float, phase: float, intensity: float = 1.0) -> Dict
 	var rot := sin(t * 17.0 + phase) * 0.045 * intensity
 	var sc := 1.0 + sin(t * 5.0 + phase) * 0.035 * intensity
 	return {"rotation": rot, "scale": Vector2(sc, sc)}
+
+
+## How far a 令 carries along a chain: the index of the last piece the signal reaches
+## before a hop crosses an unbridged border (where it stops). Pure & testable. (iter-32)
+func _herald_reach(chain: Array) -> int:
+	var reach := 0
+	for i in range(chain.size() - 1):
+		var a: String = chain[i]
+		var b: String = chain[i + 1]
+		if not board.pieces.has(a) or not board.pieces.has(b):
+			break
+		var ra: int = board.region_of(a)
+		var rb: int = board.region_of(b)
+		if ra != rb and not board.bridged(ra, rb):
+			break
+		reach = i + 1
+	return reach
+
+
+## Draw the chain as a thread and run a glowing signal along the part it can reach —
+## it visibly stops at the break (both the new "ripple" feel and a where-to-bridge cue).
+func _update_herald_viz(delta: float) -> void:
+	if _herald_line == null:
+		return
+	if board == null or board.heralds.is_empty() or not is_inside_tree():
+		_herald_line.visible = false
+		_herald_dot.visible = false
+		return
+	var chain: Array = board.heralds[0]["chain"]
+	var pts: Array = []
+	for pid in chain:
+		if _piece_widgets.has(pid) and is_instance_valid(_piece_widgets[pid]):
+			var b: Button = _piece_widgets[pid]
+			pts.append(b.global_position + b.size * 0.5)
+	if pts.size() < 2:
+		_herald_line.visible = false
+		_herald_dot.visible = false
+		return
+	_herald_line.points = PackedVector2Array(pts)
+	_herald_line.visible = true
+	if reduce_motion:
+		_herald_dot.visible = false
+		return
+	var reach: int = _herald_reach(chain)
+	_herald_t += delta * 0.9
+	var span: float = float(maxi(1, reach))
+	var u: float = fmod(_herald_t, span)
+	var idx: int = clampi(int(floor(u)), 0, pts.size() - 2)
+	var p: Vector2 = (pts[idx] as Vector2).lerp(pts[idx + 1] as Vector2, u - float(idx))
+	_herald_dot.global_position = p - _herald_dot.size * 0.5
+	_herald_dot.visible = true
 
 
 ## Severity as a nameable, colour-free, motion-free mark: !/!!/!!! by how near

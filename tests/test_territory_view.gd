@@ -336,6 +336,24 @@ func test_epiphany_is_safe_when_detached() -> void:
 	view.free()
 
 
+func test_herald_signal_reach_stops_at_a_break() -> void:
+	# iter-32: the signal visibly carries only as far as the chain is connected, and
+	# stops at a severed hop (the ripple's reach = the where-to-bridge cue).
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("herald_house"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	var chain: Array = board.heralds[0]["chain"]
+	assert_eq(view._herald_reach(chain), chain.size() - 1, "an intact relay carries to the end")
+	var r := board.draw_wall(["answer"])  # severs courier→answer
+	view._rebuild()
+	assert_eq(view._herald_reach(chain), 1, "severed → the signal reaches the courier and stops")
+	board.place_translator(BoardState.FIELD_REGION, r)
+	view._rebuild()
+	assert_eq(view._herald_reach(chain), chain.size() - 1, "bridged → it carries to the end again")
+	view.free()
+
+
 func test_parchment_shader_loads() -> void:
 	# 顾屿(iter-16): the backdrop is procedural parchment (a shader, no texture asset).
 	# (Visual result needs a real GPU; this proves the resource loads & wires up.)
