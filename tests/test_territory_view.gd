@@ -119,6 +119,21 @@ func test_every_closing_line_names_the_craft_not_only_the_moral() -> void:
 		assert_true(names_craft, "%s closing line names the craft (a verb), not just the moral: '%s'" % [tid, line])
 
 
+func test_settle_breath_dips_then_returns_to_rest() -> void:
+	# iter-51 (顾屿): on clearing, the board takes one gentle "settle breath" — contract a
+	# little at mid, then ease back to rest (a felt 理顺了 beside the 磬 + closing line).
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board)
+	assert_eq(view._settle_transform(0.0), 1.0, "starts at rest")
+	assert_true(view._settle_transform(TerritoryView.SETTLE_DUR * 0.5) < 1.0, "dips inward at mid-breath")
+	assert_eq(view._settle_transform(TerritoryView.SETTLE_DUR), 1.0, "eases back to rest")
+	board.draw_wall(["manifest"])  # solves the_crossing → _on_cleared arms the breath
+	assert_true(view._settle_t >= 0.0, "clearing arms the settle breath")
+	view.free()
+
+
 func test_one_fumble_stays_quiet_a_second_in_a_row_surfaces_the_hint() -> void:
 	# iter-46 (林晚): a single fumbled move is just trial-and-error (the puzzle itself), so
 	# stay quiet; only a SECOND no-progress move in a row surfaces the type-hint (小鹿's net,

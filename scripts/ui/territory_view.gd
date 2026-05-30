@@ -57,6 +57,7 @@ const G_TEACH_HERALD := "一道令要顺着信使一环环传到头,半路被界
 # guide softens to a TYPE hint — it names the trouble + the fix verb, but STILL never
 # which pieces. Any action or selection resets the timer.
 const STUCK_SECS := 30.0
+const SETTLE_DUR := 0.6   # the length of the "归位呼吸" the board takes when the land settles (顾屿, iter-51)
 const G_HINT_WALL := "卡住了?此地有两样同名异意 —— 用「画界」把它们分到两片地。"
 const G_HINT_BUNDLE := "卡住了?有几样本是一体却各自散着 —— 用「成束」把它们收拢。"
 const G_HINT_SPLIT := "卡住了?有一束揽得太多 —— 用「拆束」分一些出去。"
@@ -99,6 +100,7 @@ var _herald_trail_pts: Array = []
 var _idle_t := 0.0                   # seconds since last progress; drives the stuck hint (阿May, iter-36)
 var _prev_inst := -1                 # trouble count before the last move; a non-reducing move surfaces the hint (小鹿, iter-42)
 var _fumbles := 0                    # consecutive no-progress moves; the hint waits for the 2nd (林晚, iter-46)
+var _settle_t := -1.0                # >=0 while the board plays its one "settle breath" on clear (顾屿, iter-51)
 var _title: Label
 var _intro: Label
 var _narration: Label
@@ -682,6 +684,18 @@ func _process(delta: float) -> void:
 			var h := _stuck_hint_text()
 			if h != "" and _guide.text != h:
 				_guide.text = h
+	# The "归位呼吸": when the land settles, the whole board takes one gentle breath in unison
+	# — a felt "理顺了" beside the 磬 and the closing line. (顾屿, iter-51)
+	if _settle_t >= 0.0:
+		_settle_t += delta
+		var sc := 1.0 if reduce_motion else _settle_transform(_settle_t)
+		for pid in _piece_widgets:
+			var pb: Button = _piece_widgets[pid]
+			if is_instance_valid(pb):
+				pb.pivot_offset = pb.size * 0.5
+				pb.scale = Vector2(sc, sc)
+		if _settle_t >= SETTLE_DUR:
+			_settle_t = -1.0
 	if _unstable_widgets.is_empty():
 		return
 	if reduce_motion:  # vestibular-safe: hold pieces still; the static ink stain carries severity
@@ -717,6 +731,13 @@ func _distress_transform(t: float, phase: float, intensity: float = 1.0) -> Dict
 	var rot := sin(t * 17.0 + phase) * 0.045 * intensity
 	var sc := 1.0 + sin(t * 5.0 + phase) * 0.035 * intensity
 	return {"rotation": rot, "scale": Vector2(sc, sc)}
+
+
+## A single gentle "settle breath" the pieces take in unison when the land is made whole —
+## contract a touch at mid, then ease back to rest. Pure & testable; reduce_motion skips it.
+func _settle_transform(t: float) -> float:
+	var f := clampf(t / SETTLE_DUR, 0.0, 1.0)
+	return 1.0 - sin(PI * f) * 0.06
 
 
 ## How far a 令 carries along a chain: the index of the last piece the signal reaches
@@ -1029,6 +1050,7 @@ func _epiphany() -> void:
 
 func _on_cleared() -> void:
 	_release_bloom(0.42)  # the big exhale — the land is whole again
+	_settle_t = 0.0       # the whole board takes one gentle "settle breath" (顾屿, iter-51)
 	var s := board.stars()
 	GameState.record_stars(board.territory_id, s)  # best is remembered; revealed only here, never hinted
 	_overlay_mode = "clear"
