@@ -311,6 +311,25 @@
         {"id": "sy_oldbell", "label": "古庙的钟", "glyph": "钟", "meaning": "sy_temple", "kind": "living", "fixed": true},
         {"id": "sy_clock", "label": "厅上的座钟", "glyph": "钟", "meaning": "sy_mantel", "kind": "living"}
       ]
+    },
+    {
+      "id": "stele_office",
+      "name": "祠衙",
+      "tagline": "碑与西契都生根,绕不开只能架桥",
+      "intro": "祖碑、西库的契,两样都生了根、挪不动。偏巧碑与东契本是一桩;东西两契又同名异意 —— 东契一分出去,碑与它就断了,只好架座译者石,把它供着接上。",
+      "clear_line": "碑与西契挪不动,画界分了东契、再立译者石把碑与它接上 —— 明知绕远,也只能这么理。",
+      "concord_target": 2,
+      "blight_max": 30,
+      "insight": 4,
+      "pieces": [
+        {"id": "jw_stele", "label": "祖庙的碑", "glyph": "名", "meaning": "jw_ancestor", "kind": "living", "fixed": true},
+        {"id": "jw_guild", "label": "行会的招牌", "glyph": "名", "meaning": "jw_guild", "kind": "living"},
+        {"id": "jw_westdeed", "label": "西库的契", "glyph": "契", "meaning": "jw_west", "kind": "living", "fixed": true},
+        {"id": "jw_eastdeed", "label": "东市的契", "glyph": "契", "meaning": "jw_east", "kind": "living"}
+      ],
+      "links": [
+        {"id": "jw_bond", "label": "碑与东契一桩", "a": "jw_stele", "b": "jw_eastdeed"}
+      ]
     }
   ]
 }

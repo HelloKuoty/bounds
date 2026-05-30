@@ -18,6 +18,7 @@ const BRANCH_POOL := [
 	{"type": "territory", "terr": "scroll_bond"}, # 契卷堂:卷页待收,先束后通
 	{"type": "territory", "terr": "two_names"},   # 名障镇:名会骗人,认形莫认名
 	{"type": "territory", "terr": "stele_yard"},  # 碑院:碑石挪不动,绕它分别处(固/锚棋)
+	{"type": "territory", "terr": "stele_office"}, # 祠衙:两枚固定棋 + 链强制架桥(固/锚全局张力)
 ]
 const PLAN := [
 	[{"type": "territory", "terr": "the_crossing"}],        # 学:画界

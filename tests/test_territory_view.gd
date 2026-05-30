@@ -163,6 +163,21 @@ func test_fixed_pieces_refuse_to_move_and_force_walling_the_others() -> void:
 	assert_true(board.cleared, "walling the movable pieces around the fixed ones settles 碑院")
 
 
+func test_stele_office_two_fixed_pieces_force_a_bridge() -> void:
+	# iter-56 (深度·全局张力): 祠衙 has TWO fixed pieces (the stele 名 + the west deed 契), each
+	# name-clashing with a movable piece. You MUST wall the movable 东契 out — which severs its
+	# link to the immovable stele — so you're forced to bridge them (老陈: 明知丑也得供着).
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("stele_office"))
+	assert_eq(board.draw_wall(["jw_stele"]), -1, "the stele is fixed")
+	assert_eq(board.draw_wall(["jw_westdeed"]), -1, "the west deed is fixed too")
+	board.draw_wall(["jw_guild"])     # the only way to clear the 名 clash (stele won't move)
+	board.draw_wall(["jw_eastdeed"])  # the only way to clear the 契 clash (west deed won't move)
+	assert_false(board.cleared, "walling 东契 out severed its link to the immovable stele")
+	board.place_translator(board.region_of("jw_stele"), board.region_of("jw_eastdeed"))
+	assert_true(board.cleared, "bridging the immovable stele to its deed finally settles 祠衙")
+
+
 func test_one_fumble_stays_quiet_a_second_in_a_row_surfaces_the_hint() -> void:
 	# iter-46 (林晚): a single fumbled move is just trial-and-error (the puzzle itself), so
 	# stay quiet; only a SECOND no-progress move in a row surfaces the type-hint (小鹿's net,
