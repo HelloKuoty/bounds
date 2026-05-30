@@ -40,13 +40,26 @@ static func make_dict(seed: int, mind := "broad") -> Dictionary:
 	var cluster := false
 	var care_bonus := 1
 	var herald := false
+	# A 心法 sets RANGES, not a fixed recipe — the seed rolls the actual structure within
+	# them, so two trials of the same 心法 differ in shape (trouble count, whether a 令
+	# appears), not just in glyphs. Types may co-occur, so a board is a small SYSTEM rather
+	# than one trouble on its own island. (小鹿 "孤岛→系统", iter-44)
 	match mind:
-		"broad":     # 博观:局面大、心力宽 —— 看得多,但管够
-			pairs = 3; cluster = true; care_bonus = 2
-		"precise":   # 持重:局面小、心力紧 —— 零容错,一步错就清不掉
-			pairs = 2; cluster = false; care_bonus = 0
-		"adaptive":  # 通变:少几处名争,但多一道「令」要接通(传令链入随机)
-			pairs = 1; cluster = false; care_bonus = 1; herald = true
+		"broad":     # 博观:局面大、心力宽 —— 多名争 + 一簇,偶尔再带一道令
+			pairs = 2 + (rng.randi() % 2)        # 2..3
+			cluster = true
+			herald = rng.randf() < 0.5
+			care_bonus = 2
+		"precise":   # 持重:局面小、心力紧、零容错 —— 结构随种子变,但一步错就清不掉
+			pairs = 2 + (rng.randi() % 2)        # 2..3
+			cluster = rng.randf() < 0.35
+			herald = rng.randf() < 0.35
+			care_bonus = 0
+		"adaptive":  # 通变:必有一道「令」要接通,余随种子 —— 画界分名会切断令(跨类级联)
+			pairs = 1 + (rng.randi() % 2)        # 1..2
+			cluster = rng.randf() < 0.5
+			herald = true
+			care_bonus = 1
 		_:
 			pairs = 2; cluster = true; care_bonus = 1
 
@@ -86,7 +99,9 @@ static func make_dict(seed: int, mind := "broad") -> Dictionary:
 		"intro": "此地由命数布成,名实交错。看清形色,各归其位。",
 		"concord_target": troubles,
 		"blight_max": 30,
-		"insight": troubles + care_bonus,
+		# a 令 costs one extra action (wall to split the name, THEN a translator to reconnect),
+		# so its budget gets the +1 — keeping every rolled structure solvable by construction.
+		"insight": troubles + care_bonus + (1 if herald else 0),
 		"pieces": pieces,
 		"clusters": clusters,
 		"heralds": heralds,
