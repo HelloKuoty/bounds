@@ -78,6 +78,44 @@ func test_trial_is_on_every_path() -> void:
 	assert_true(trial_forced, "a trial sits on a forced single-node layer — unavoidable")
 
 
+func test_branch_choices_are_real_and_differentiated() -> void:
+	# iter-38 (K哥 头号必修): on any layer that offers a CHOICE (>1 node), every option
+	# must lead to a real territory carrying its own one-line promise — no empty waypoint
+	# "假选择", and no two side-by-side options that read identically.
+	var by_layer := {}
+	for id in RunManager.nodes:
+		var ly: int = RunManager.node(id)["layer"]
+		if not by_layer.has(ly):
+			by_layer[ly] = []
+		by_layer[ly].append(id)
+	var checked_a_branch := false
+	for ly in by_layer:
+		if by_layer[ly].size() < 2:
+			continue  # forced single-node layer — nothing to differentiate
+		checked_a_branch = true
+		var seen_taglines := {}
+		for id in by_layer[ly]:
+			var terr: String = RunManager.node(id)["territory_id"]
+			assert_true(terr != "", "branch option %s leads to a real territory (no empty 假选择)" % id)
+			assert_true(TerritoryDatabase.has_territory(terr), "branch territory %s exists in the database" % terr)
+			var tag: String = TerritoryDatabase.get_territory(terr).tagline
+			assert_true(tag != "", "branch territory %s carries a one-line promise" % terr)
+			assert_false(seen_taglines.has(tag), "no two options on one branch read identically: '%s'" % tag)
+			seen_taglines[tag] = true
+	assert_true(checked_a_branch, "the run has at least one real branch layer")
+
+
+func test_new_branch_territories_are_well_formed() -> void:
+	# iter-38: the two newly-authored branch territories load, and their declared concord
+	# target equals their actual initial instability count (the territories.json invariant).
+	for tid in ["the_bazaar", "the_sanctum"]:
+		var t := TerritoryDatabase.get_territory(tid)
+		var board := BoardState.new()
+		board.load_territory(t)
+		assert_false(board.cleared, "%s starts unsolved" % tid)
+		assert_eq(board.instabilities().size(), t.concord_target, "%s: concord target == initial troubles" % tid)
+
+
 func _count_paths(id: String, memo: Dictionary) -> int:
 	if id == RunManager.boss_id:
 		return 1

@@ -24,6 +24,7 @@ func _player_facing_strings() -> Array:
 		var t := TerritoryDatabase.get_territory(tid)
 		out.append(t.name)
 		out.append(t.intro)
+		out.append(t.tagline)
 		for p in t.pieces:
 			out.append(p.label)
 			out.append(p.glyph)

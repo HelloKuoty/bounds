@@ -57,6 +57,7 @@
       "id": "two_faced",
       "name": "两面镇",
       "intro": "镇上两样东西打着同一个「印」,意思却南辕北辙;两座「钟」也是。一刀若分得巧,或能一举两清。",
+      "tagline": "一物两面,一刀两清",
       "concord_target": 2,
       "blight_max": 30,
       "insight": 2,
@@ -71,6 +72,7 @@
       "id": "two_names",
       "name": "名障镇",
       "intro": "这镇的名最会骗人:有名字一样的,其实各是各的,该分开;也有名字两异的,却本是一条命,该并作一束。认形色,莫认名。",
+      "tagline": "名会骗人,认形莫认名",
       "concord_target": 2,
       "blight_max": 30,
       "insight": 2,
@@ -88,6 +90,7 @@
       "id": "knot_ford",
       "name": "连环渡",
       "intro": "一处缠局:同一个「银」,两岸各表一意——分开,则两岸断了往来,还得另架一座通路;一总册又连着散页,等人收拢。一处动,别处便牵一发——想清楚再落手。",
+      "tagline": "牵一发而动全身",
       "concord_target": 2,
       "blight_max": 40,
       "insight": 3,
@@ -109,6 +112,7 @@
       "id": "scroll_bond",
       "name": "契卷堂",
       "intro": "一总卷连着散页,却没人收拢;两纸「契」各执一词,偏要合成一桩事。",
+      "tagline": "卷页待收,先束后通",
       "concord_target": 2,
       "blight_max": 36,
       "insight": 4,
@@ -233,6 +237,48 @@
       ],
       "links": [
         {"id": "the_trade", "label": "南北通货", "a": "s_east", "b": "s_west"}
+      ]
+    },
+    {
+      "id": "the_bazaar",
+      "name": "喧市",
+      "tagline": "重名扎堆,逐一画界",
+      "intro": "赶集的日子,满街吆喝撞在一处:好几样东西都唤作一个名,意思却各走各的。一刀刀画开,各归各摊。",
+      "concord_target": 3,
+      "blight_max": 30,
+      "insight": 5,
+      "pieces": [
+        {"id": "bz_goods_a", "label": "南摊的货", "glyph": "货", "meaning": "bz_wares", "kind": "living"},
+        {"id": "bz_goods_b", "label": "北栈的货", "glyph": "货", "meaning": "bz_freight", "kind": "living"},
+        {"id": "bz_cert_a", "label": "盐商的引", "glyph": "引", "meaning": "bz_saltcert", "kind": "living"},
+        {"id": "bz_cert_b", "label": "戏班的引", "glyph": "引", "meaning": "bz_overture", "kind": "living"},
+        {"id": "bz_scale_a", "label": "粮行的秤", "glyph": "秤", "meaning": "bz_grainscale", "kind": "living"},
+        {"id": "bz_scale_b", "label": "鱼市的秤", "glyph": "秤", "meaning": "bz_fishscale", "kind": "living"}
+      ],
+      "links": [
+        {"id": "bz_fair_weight", "label": "两行公砝", "a": "bz_scale_a", "b": "bz_scale_b"}
+      ]
+    },
+    {
+      "id": "the_sanctum",
+      "name": "静室",
+      "tagline": "散物满堂,逐一成束",
+      "intro": "清修之地本该井然,却满堂散落:该归一处的经卷各在一角,该归一炉的香也分了家。一束束收拢,各安其位。",
+      "concord_target": 3,
+      "blight_max": 30,
+      "insight": 4,
+      "pieces": [
+        {"id": "sn_s1", "label": "东阁的经", "glyph": "经", "meaning": "sn_sutra", "kind": "living"},
+        {"id": "sn_s2", "label": "西阁的经", "glyph": "经", "meaning": "sn_sutra", "kind": "living"},
+        {"id": "sn_s3", "label": "藏阁的经", "glyph": "经", "meaning": "sn_sutra", "kind": "living"},
+        {"id": "sn_i1", "label": "晨课的香", "glyph": "香", "meaning": "sn_incense", "kind": "living"},
+        {"id": "sn_i2", "label": "晚课的香", "glyph": "香", "meaning": "sn_incense", "kind": "living"},
+        {"id": "sn_q1", "label": "礼器的磬", "glyph": "磬", "meaning": "sn_chime_rite", "kind": "living"},
+        {"id": "sn_q2", "label": "市集的磬", "glyph": "磬", "meaning": "sn_chime_hawk", "kind": "living"}
+      ],
+      "clusters": [
+        {"id": "sn_one_sutra", "label": "一堂经", "members": ["sn_s1", "sn_s2", "sn_s3"]},
+        {"id": "sn_one_incense", "label": "一炉香", "members": ["sn_i1", "sn_i2"]}
       ]
     }
   ]

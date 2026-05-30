@@ -15,8 +15,8 @@ const PLAN := [
 	[{"type": "territory", "terr": "the_seep"}],            # 学:用界遏制蔓延
 	[{"type": "territory", "terr": "herald_house"}],        # 学:传令链(画界会切断令的传递,在断处架译者石接上)
 	# 教学全过后才放开分叉(有选择,但不会撞上没学过的招)
-	[{"type": "bazaar", "terr": ""}, {"type": "territory", "terr": "two_faced"}, {"type": "sanctum", "terr": ""}, {"type": "territory", "terr": "knot_ford"}],  # 分叉:连环渡(交错连环)
-	[{"type": "sanctum", "terr": ""}, {"type": "territory", "terr": "scroll_bond"}, {"type": "territory", "terr": "two_names"}],  # 分叉:契卷堂 / 名障镇
+	[{"type": "bazaar", "terr": "the_bazaar"}, {"type": "territory", "terr": "two_faced"}, {"type": "territory", "terr": "knot_ford"}],  # 分叉:喧市(重名)/ 两面镇(同名异意)/ 连环渡(牵一发) — 各有性格,选择屏看 tagline
+	[{"type": "sanctum", "terr": "the_sanctum"}, {"type": "territory", "terr": "scroll_bond"}, {"type": "territory", "terr": "two_names"}],  # 分叉:静室(散簇)/ 契卷堂(束+通)/ 名障镇(认形莫认名) — 各有性格
 	[{"type": "territory", "terr": "trial"}],               # 强制:试炼之地(随机布局 + 心法),每条 run 必经,不再可绕
 	[{"type": "heartland", "terr": "the_sprawl"}],          # Boss:蔓沼
 ]

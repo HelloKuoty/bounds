@@ -82,7 +82,14 @@ func _node_button(nid: String, reachable: Array) -> Button:
 	var label: String = TYPE_NAMES.get(n["type"], n["type"])
 	var earned: int = int(GameState.best_stars.get(n.get("territory_id", ""), 0))
 	var stars_str: String = ("  " + "★".repeat(earned)) if earned > 0 else ""
-	btn.text = ("✓ " if visited else "") + label + stars_str
+	# A branch territory's tagline (its one-line promise) rides under the type name so
+	# side-by-side "土地" choices are no longer indistinguishable. (K哥, iter-38)
+	var terr_id: String = n.get("territory_id", "")
+	var tag: String = TerritoryDatabase.get_territory(terr_id).tagline if TerritoryDatabase.has_territory(terr_id) else ""
+	btn.text = ("✓ " if visited else "") + label + stars_str + (("\n" + tag) if tag != "" else "")
+	if tag != "":
+		btn.custom_minimum_size = Vector2(176, 66)  # room for the promise line
+		btn.add_theme_font_size_override("font_size", 15)
 	if is_reach:
 		btn.pressed.connect(_on_node_pressed.bind(nid))
 	else:
