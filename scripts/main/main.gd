@@ -3,14 +3,15 @@ class_name BoundsMain extends Node
 ## node, solve its territory (or pass a waypoint), return to the map, on to the
 ## heartland. Narration bookends and punctuates the journey.
 
-const UI_TEXTS := ["界", "启程", "继续", "心法", "试炼之地 · 择一而入,深浅由你。", "浅", "中", "深"]
+const UI_TEXTS := ["界", "启程", "继续", "心法", "试炼之地 · 择一而入,各有取舍。",
+	"博观", "持重", "通变", "局面大 · 心力宽", "局面小 · 零容错", "多一道令要接通"]
 
 var _view: TerritoryView
 var _map: RunMapView
 var _screen: Control       # generic centered message overlay
 var _pending: Callable
 var _narr_i := 0
-var _trial_depth := 0  # chosen 心法 for the current trial (0 = not yet chosen this visit)
+var _trial_mind := ""  # chosen 心法 for the current trial ("" = not yet chosen this visit)
 
 
 func _ready() -> void:
@@ -52,11 +53,11 @@ func _open_territory(node_id: String) -> void:
 	var tid: String = RunManager.node(node_id)["territory_id"]
 	if TerritoryDatabase.has_territory(tid):
 		_open_board(node_id, TerritoryDatabase.get_territory(tid))
-	elif _trial_depth > 0:
+	elif _trial_mind != "":
 		# a seeded trial of the chosen 心法 — fresh & solvable, stable on retry this visit
-		_open_board(node_id, TerritoryGen.make((hash(node_id) ^ GameState.run_seed) + _trial_depth, _trial_depth))
+		_open_board(node_id, TerritoryGen.make((hash(node_id) ^ GameState.run_seed) + hash(_trial_mind), _trial_mind))
 	else:
-		_show_trial_choice(node_id)  # first pick your 心法 (how deep a challenge)
+		_show_trial_choice(node_id)  # first pick your 心法 — a build, not a difficulty slider
 
 
 func _open_board(node_id: String, t: TerritoryData) -> void:
@@ -97,7 +98,7 @@ func _show_trial_choice(node_id: String) -> void:
 	t.add_theme_font_size_override("font_size", 56)
 	vb.add_child(t)
 	var b := Label.new()
-	b.text = "试炼之地 · 择一而入,深浅由你。"
+	b.text = "试炼之地 · 择一而入,各有取舍。"
 	b.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	b.add_theme_color_override("font_color", Color("aab0c0"))
 	vb.add_child(b)
@@ -105,21 +106,21 @@ func _show_trial_choice(node_id: String) -> void:
 	row.add_theme_constant_override("separation", 16)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	vb.add_child(row)
-	for opt in [{"t": "浅", "d": 1}, {"t": "中", "d": 2}, {"t": "深", "d": 3}]:
+	for opt in [{"m": "broad", "t": "博观\n局面大 · 心力宽"}, {"m": "precise", "t": "持重\n局面小 · 零容错"}, {"m": "adaptive", "t": "通变\n多一道令要接通"}]:
 		var btn := Button.new()
-		btn.text = opt["t"]
-		btn.custom_minimum_size = Vector2(120, 56)
-		btn.pressed.connect(_on_trial_pick.bind(int(opt["d"]), node_id))
+		btn.text = String(opt["t"])
+		btn.custom_minimum_size = Vector2(150, 66)
+		btn.pressed.connect(_on_trial_pick.bind(String(opt["m"]), node_id))
 		row.add_child(btn)
 
 
-func _on_trial_pick(depth: int, node_id: String) -> void:
-	_trial_depth = depth
+func _on_trial_pick(mind: String, node_id: String) -> void:
+	_trial_mind = mind
 	_open_territory(node_id)
 
 
 func _on_territory_cleared(node_id: String) -> void:
-	_trial_depth = 0  # leaving this territory; a future trial picks its 心法 anew
+	_trial_mind = ""  # leaving this territory; a future trial picks its 心法 anew
 	if node_id == RunManager.boss_id:
 		_view.show_finale(Narrative.ENDING)
 	else:

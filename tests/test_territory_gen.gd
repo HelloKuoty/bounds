@@ -6,14 +6,14 @@ extends TestHelpers
 const FORBIDDEN := ["实体", "聚合", "限界上下文", "防腐层", "领域事件", "技术债", "重构", "entity", "aggregate", "refactor", "repository", "database"]
 
 
-func test_every_seed_and_depth_builds_a_solvable_board() -> void:
-	for depth in [1, 2, 3]:
+func test_every_seed_and_mind_builds_a_solvable_board() -> void:
+	for mind in TerritoryGen.MINDS:
 		for seed in range(25):
-			var t := TerritoryGen.make(seed, depth)
+			var t := TerritoryGen.make(seed, mind)
 			var board := BoardState.new()
 			board.load_territory(t)
-			assert_true(board.instabilities().size() >= 1, "心法 d%d seed %d has something to solve" % [depth, seed])
-			assert_true(_greedy_solve(board), "心法 d%d seed %d solvable within budget" % [depth, seed])
+			assert_true(board.instabilities().size() >= 1, "心法 %s seed %d has something to solve" % [mind, seed])
+			assert_true(_greedy_solve(board), "心法 %s seed %d solvable within budget" % [mind, seed])
 
 
 func test_same_seed_reproduces_the_same_board() -> void:
@@ -27,16 +27,17 @@ func test_same_seed_reproduces_the_same_board() -> void:
 func test_generated_text_is_jargon_free() -> void:
 	# The iron rule holds for generated content too (its strings aren't in the JSON
 	# database, so scan samples directly here).
-	for seed in range(40):
-		var t := TerritoryGen.make(seed)
-		var strings: Array = [t.name, t.intro]
-		for p in t.pieces:
-			strings.append(p.label)
-			strings.append(p.glyph)
-		for s in strings:
-			var low: String = str(s).to_lower()
-			for term in FORBIDDEN:
-				assert_false(term in low, "generated string '%s' (seed %d) leaks jargon '%s'" % [s, seed, term])
+	for mind in TerritoryGen.MINDS:
+		for seed in range(15):
+			var t := TerritoryGen.make(seed, mind)
+			var strings: Array = [t.name, t.intro]
+			for p in t.pieces:
+				strings.append(p.label)
+				strings.append(p.glyph)
+			for s in strings:
+				var low: String = str(s).to_lower()
+				for term in FORBIDDEN:
+					assert_false(term in low, "generated '%s' (%s/%d) leaks jargon '%s'" % [s, mind, seed, term])
 
 
 # Generic greedy solver (mirrors smoke_full_run's): proves the board is winnable.
@@ -67,6 +68,23 @@ func _greedy_solve(board: BoardState) -> bool:
 				if members.is_empty():
 					return false
 				board.bundle(members, members[0])
+			"severed_chain":
+				var hh := {}
+				for h in board.heralds:
+					if h["id"] == inst["herald"]:
+						hh = h
+				if hh.is_empty():
+					return false
+				var hchain: Array = hh["chain"]
+				var acted := false
+				for ci in range(hchain.size() - 1):
+					var ha: String = hchain[ci]
+					var hb: String = hchain[ci + 1]
+					if board.pieces.has(ha) and board.pieces.has(hb) and board.region_of(ha) != board.region_of(hb):
+						board.place_translator(board.region_of(ha), board.region_of(hb))
+						acted = true
+				if not acted:
+					return false
 			_:
 				return false
 	return board.cleared
