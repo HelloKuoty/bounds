@@ -66,6 +66,22 @@ func test_stuck_hint_names_the_trouble_not_the_pieces() -> void:
 	view.free()
 
 
+func test_name_kin_groups_same_name_pieces_for_non_readers() -> void:
+	# iter-40 (Mira): selecting a piece lights up its name-kin (same 字形) so a player who
+	# can't read the glyphs still SEES which pieces share a name — but kinship spans BOTH
+	# clashes and harmless same-meaning twins, so it never points at the answer.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board)
+	# ledger & manifest both bear 账 (a clash); coin_a & coin_b both bear 钱 (harmless twins).
+	assert_true("manifest" in view._name_kin("ledger"), "same-name pieces are kin (账)")
+	assert_true("coin_b" in view._name_kin("coin_a"), "same-name harmless twins are kin too (钱)")
+	assert_false("trader" in view._name_kin("ledger"), "a different name is never kin")
+	assert_eq(view._name_kin("trader").size(), 0, "a one-of-a-kind name has no kin")
+	view.free()
+
+
 func test_first_lesson_teaches_the_tool_not_the_pieces() -> void:
 	# 去保姆化(iter-25): the first time, the guide teaches what 画界 does + how to
 	# diagnose — but never names which pieces (no "账", no "click this one").

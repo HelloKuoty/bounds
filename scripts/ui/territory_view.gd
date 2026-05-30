@@ -379,8 +379,8 @@ func _make_piece_button(pid: String) -> Button:
 	btn.add_theme_font_size_override("font_size", 13)
 	# A selected piece wears a thick bright ring. The cue is border *thickness*,
 	# not hue — so it survives colour-blindness and keyboard-only play. (周棠, iter-07)
-	btn.add_theme_stylebox_override("normal", _piece_box(Color("33291a"), Color("1b1308"), 2))
-	btn.add_theme_stylebox_override("hover", _piece_box(Color("40331f"), Color("2a1e0e"), 2))
+	btn.add_theme_stylebox_override("normal", _box_normal())
+	btn.add_theme_stylebox_override("hover", _box_hover())
 	var ring := _piece_box(Color("4a3a22"), Color("f0d89a"), 3)
 	btn.add_theme_stylebox_override("pressed", ring)
 	btn.add_theme_stylebox_override("focus", ring)
@@ -401,7 +401,37 @@ func _on_piece_toggled(pressed: bool, pid: String) -> void:
 	else:
 		_selected.erase(pid)
 	_idle_t = 0.0   # the player is engaging; they're not stuck
+	_refresh_name_kin()
 	_update_guide()
+
+
+## Pieces sharing this one's name (same 字形), regardless of meaning — a perception
+## aid only: same-name may be a clash (act) OR perfectly fine (same meaning), so this
+## never points at the answer, it just lets non-readers see name-groups. (Mira, iter-40)
+func _name_kin(pid: String) -> Array:
+	var out: Array = []
+	if not board.pieces.has(pid):
+		return out
+	var g: String = board.pieces[pid]["glyph"]
+	for other in board.pieces:
+		if other != pid and board.pieces[other]["glyph"] == g:
+			out.append(other)
+	return out
+
+
+## Light up every piece that shares a name with anything currently selected.
+func _refresh_name_kin() -> void:
+	var selected_glyphs := {}
+	for pid in _selected:
+		if board.pieces.has(pid):
+			selected_glyphs[board.pieces[pid]["glyph"]] = true
+	for pid in _piece_widgets:
+		var b: Button = _piece_widgets[pid]
+		if not is_instance_valid(b):
+			continue
+		var kin: bool = (not _selected.has(pid)) and selected_glyphs.has(board.pieces[pid]["glyph"])
+		b.add_theme_stylebox_override("normal", _box_kin() if kin else _box_normal())
+		b.add_theme_stylebox_override("hover", _box_kin_hover() if kin else _box_hover())
 
 
 func _on_wall() -> void:
@@ -996,6 +1026,26 @@ func _button(text: String, cb: Callable) -> Button:
 	b.text = text
 	b.pressed.connect(cb)
 	return b
+
+
+func _box_normal() -> StyleBoxFlat:
+	return _piece_box(Color("33291a"), Color("1b1308"), 2)
+
+
+func _box_hover() -> StyleBoxFlat:
+	return _piece_box(Color("40331f"), Color("2a1e0e"), 2)
+
+
+## Name-kin highlight: a piece sharing the SELECTED one's name lights with a thicker,
+## cool-edged ring (border *thickness* 2→3 carries it for colour-blind play; the cool
+## hue distinguishes it from the warm gold selection ring). So a player who can't read
+## the 字 still SEES which pieces share a name — without being told which to act on. (Mira, iter-40)
+func _box_kin() -> StyleBoxFlat:
+	return _piece_box(Color("2a2f3a"), Color("7f9ad6"), 3)
+
+
+func _box_kin_hover() -> StyleBoxFlat:
+	return _piece_box(Color("333a48"), Color("9db4ea"), 3)
 
 
 func _piece_box(bg: Color, border: Color, w: int) -> StyleBoxFlat:
