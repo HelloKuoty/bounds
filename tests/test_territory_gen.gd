@@ -67,6 +67,20 @@ func test_generated_text_is_jargon_free() -> void:
 					assert_false(term in low, "generated '%s' (%s/%d) leaks jargon '%s'" % [s, mind, seed, term])
 
 
+func test_some_trials_pin_a_fixed_piece() -> void:
+	# iter-54: the 固/锚 concept reaches the random trials too — across seeds, some boards
+	# pin a piece (you carve around it); the solvability sweep above proves they still clear.
+	var found := false
+	for seed in range(40):
+		for t_piece in TerritoryGen.make(seed, "broad").pieces:
+			if t_piece.fixed:
+				found = true
+				break
+		if found:
+			break
+	assert_true(found, "some generated trial pins a fixed piece")
+
+
 # Generic greedy solver (mirrors smoke_full_run's): proves the board is winnable.
 func _greedy_solve(board: BoardState) -> bool:
 	for _i in range(40):
@@ -78,11 +92,17 @@ func _greedy_solve(board: BoardState) -> bool:
 		var inst: Dictionary = insts[0]
 		match inst["type"]:
 			"name_overload":
+				# keep a FIXED piece's meaning (it can't be moved); move only non-fixed others (iter-54)
 				var keep = inst["meanings"][0]
+				for pid in board.pieces:
+					var pf: Dictionary = board.pieces[pid]
+					if pf["region"] == inst["region"] and pf["glyph"] == inst["glyph"] and pf.get("fixed", false):
+						keep = pf["meaning"]
+						break
 				var move: Array = []
 				for pid in board.pieces:
 					var p: Dictionary = board.pieces[pid]
-					if p["region"] == inst["region"] and p["glyph"] == inst["glyph"] and p["meaning"] != keep:
+					if p["region"] == inst["region"] and p["glyph"] == inst["glyph"] and p["meaning"] != keep and not p.get("fixed", false):
 						move.append(pid)
 				if move.is_empty():
 					return false

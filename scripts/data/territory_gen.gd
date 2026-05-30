@@ -63,12 +63,15 @@ static func make_dict(seed: int, mind := "broad") -> Dictionary:
 		_:
 			pairs = 2; cluster = true; care_bonus = 1
 
+	var has_fixed := rng.randf() < 0.4   # some trials pin one piece 固/锚 — you carve around it (iter-54)
 	for p in range(pairs):
 		var gl: String = glyphs[gi]
 		gi += 1
 		var dirs := DIRS.duplicate()
 		_shuffle(dirs, rng)
-		pieces.append({"id": "p%d_a" % p, "label": "%s边的%s" % [dirs[0], gl], "glyph": gl, "meaning": "clash%d_a" % p, "kind": "living"})
+		# pin only the FIRST pair's a-side; its b-side stays movable, so the clash stays solvable
+		var a_fixed: bool = has_fixed and p == 0
+		pieces.append({"id": "p%d_a" % p, "label": "%s边的%s" % [dirs[0], gl], "glyph": gl, "meaning": "clash%d_a" % p, "kind": "living", "fixed": a_fixed})
 		pieces.append({"id": "p%d_b" % p, "label": "%s边的%s" % [dirs[1], gl], "glyph": gl, "meaning": "clash%d_b" % p, "kind": "living"})
 	var troubles := pairs
 
