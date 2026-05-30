@@ -105,17 +105,33 @@ func test_every_territory_carries_a_closing_line() -> void:
 		assert_true(t.clear_line != "", "%s carries a closing line" % tid)
 
 
-func test_a_fumbled_move_surfaces_the_hint_without_waiting() -> void:
-	# iter-42 (小鹿): a move that fails to reduce the trouble count surfaces the type-hint
-	# at once — a stuck player shouldn't have to wait out the 30s idle clock.
+func test_one_fumble_stays_quiet_a_second_in_a_row_surfaces_the_hint() -> void:
+	# iter-46 (林晚): a single fumbled move is just trial-and-error (the puzzle itself), so
+	# stay quiet; only a SECOND no-progress move in a row surfaces the type-hint (小鹿's net,
+	# now patient). The hint still names only the KIND + verb, never which pieces.
 	var board := BoardState.new()
 	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
 	var view := TerritoryView.new()
 	view.setup(board)
-	# a useless wall (the lone trader) leaves the 账 name-clash unresolved — a fumble.
-	board.draw_wall(["trader"])
+	board.draw_wall(["trader"])   # first fumble: a useless wall leaves the 账 clash unresolved
 	view._rebuild()
-	assert_eq(view._guide.text, TerritoryView.G_HINT_WALL, "a non-reducing move surfaces the hint at once")
+	assert_true(view._guide.text != TerritoryView.G_HINT_WALL, "one fumble stays quiet (trial-and-error is allowed)")
+	board.draw_wall(["courier"])  # second no-progress move in a row
+	view._rebuild()
+	assert_eq(view._guide.text, TerritoryView.G_HINT_WALL, "a second fumble in a row surfaces the hint")
+	view.free()
+
+
+func test_selection_and_kin_rings_differ_without_colour() -> void:
+	# iter-46 (周棠): selected vs name-kin vs normal must be told apart WITHOUT hue — by a
+	# border-width ladder (2 < 3 < 4) plus the selected fill's brighter value.
+	var view := TerritoryView.new()
+	var normal := view._box_normal()
+	var kin := view._box_kin()
+	var selected := view._box_selected()
+	assert_true(kin.border_width_top > normal.border_width_top, "name-kin reads thicker than a plain piece")
+	assert_true(selected.border_width_top > kin.border_width_top, "the selected ring is the thickest")
+	assert_true(selected.bg_color.v > normal.bg_color.v, "and the selected fill is brighter (value, not hue)")
 	view.free()
 
 

@@ -98,6 +98,7 @@ var _herald_break_mark: Label        # ✕ where the 令 can't cross (林晚, it
 var _herald_trail_pts: Array = []
 var _idle_t := 0.0                   # seconds since last progress; drives the stuck hint (阿May, iter-36)
 var _prev_inst := -1                 # trouble count before the last move; a non-reducing move surfaces the hint (小鹿, iter-42)
+var _fumbles := 0                    # consecutive no-progress moves; the hint waits for the 2nd (林晚, iter-46)
 var _title: Label
 var _intro: Label
 var _narration: Label
@@ -348,15 +349,20 @@ func _rebuild() -> void:
 	_highlight_instabilities()
 	_update_guide()
 	_update_verb_buttons()
-	# 小鹿(iter-42): a move that didn't reduce the trouble count — a real fumble OR a legit
-	# setup step (wall-before-bridge, bundle-before-split) — surfaces the type-hint at once,
-	# instead of making a stuck player wait out the 30s idle clock. Harmless either way: the
-	# hint only ever names the KIND of trouble + the verb, never which pieces.
+	# 小鹿(iter-42) + 林晚(iter-46): a move that didn't reduce the trouble count counts as a
+	# fumble — but ONE fumble is just trial-and-error (which IS the puzzle), so stay quiet.
+	# Only a SECOND no-progress move in a row surfaces the type-hint (genuinely stuck, not
+	# merely trying). The hint still only names the KIND of trouble + the verb, never pieces.
 	var now_inst := board.instabilities().size()
-	if _prev_inst >= 0 and now_inst >= _prev_inst and not board.cleared:
-		var fumble_hint := _stuck_hint_text()
-		if fumble_hint != "":
-			_guide.text = fumble_hint
+	if _prev_inst >= 0 and not board.cleared:
+		if now_inst >= _prev_inst:
+			_fumbles += 1
+		else:
+			_fumbles = 0
+		if _fumbles >= 2:
+			var fumble_hint := _stuck_hint_text()
+			if fumble_hint != "":
+				_guide.text = fumble_hint
 	_prev_inst = now_inst
 
 
@@ -404,7 +410,7 @@ func _make_piece_button(pid: String) -> Button:
 	# not hue — so it survives colour-blindness and keyboard-only play. (周棠, iter-07)
 	btn.add_theme_stylebox_override("normal", _box_normal())
 	btn.add_theme_stylebox_override("hover", _box_hover())
-	var ring := _piece_box(Color("4a3a22"), Color("f0d89a"), 3)
+	var ring := _box_selected()
 	btn.add_theme_stylebox_override("pressed", ring)
 	btn.add_theme_stylebox_override("focus", ring)
 	for st in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
@@ -1115,6 +1121,14 @@ func _box_kin() -> StyleBoxFlat:
 
 func _box_kin_hover() -> StyleBoxFlat:
 	return _piece_box(Color("333a48"), Color("9db4ea"), 3)
+
+
+## The SELECTED piece wears the strongest frame: the THICKEST border (4) AND the lightest
+## fill. It's told apart from the name-kin ring by border *width* (4 vs 3) and fill *value*
+## (brighter), not by hue — so a colour-blind player never confuses "selected" with "kin"
+## even when the warm/cool tints are invisible. (周棠, iter-46)
+func _box_selected() -> StyleBoxFlat:
+	return _piece_box(Color("5a4830"), Color("f0d89a"), 4)
 
 
 func _piece_box(bg: Color, border: Color, w: int) -> StyleBoxFlat:
