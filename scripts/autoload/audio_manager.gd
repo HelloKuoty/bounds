@@ -17,8 +17,12 @@ func _ready() -> void:
 	add_child(_player)
 	_sfx["wall"] = _tone([880.0], 0.07)            # crisp tick — a line drawn
 	_sfx["bundle"] = _tone([294.0], 0.12)          # low thunk — gathered
+	_sfx["split"] = _tone([392.0, 311.0], 0.09)    # two notes parting — split apart
 	_sfx["translator"] = _tone([587.0, 784.0], 0.10)  # two-note — a bridge
-	_sfx["clear"] = _tone([523.0, 659.0, 784.0], 0.42)  # rising chord — order
+	_sfx["copy"] = _tone([784.0], 0.045)           # light paper tick — a copy taken
+	_sfx["share"] = _tone([440.0, 660.0], 0.16)    # a held fifth — the one thing, used by two
+	# A struck 磬 that rings out — the "settled / returned to place" payoff, not a chord blip. (顾屿, iter-49)
+	_sfx["clear"] = _bell([528.0, 792.0, 1408.0], 0.85)
 	_sfx["fail"] = _tone([196.0, 147.0], 0.30)     # low fall — collapse
 	_sfx["error"] = _tone([140.0], 0.10)           # short buzz — refused
 	# A quiet, seamlessly-looping ambient bed — atmosphere beyond one-shot blips.
@@ -74,6 +78,32 @@ func _tone(freqs: Array, dur: float) -> AudioStreamWAV:
 		for f in freqs:
 			s += sin(TAU * f * t)
 		s = (s / freqs.size()) * env * 0.5
+		data.encode_s16(i * 2, int(clamp(s, -1.0, 1.0) * 32767.0))
+	var w := AudioStreamWAV.new()
+	w.format = AudioStreamWAV.FORMAT_16_BITS
+	w.mix_rate = SR
+	w.stereo = false
+	w.data = data
+	return w
+
+
+## Synthesise a struck-bell / 磬 tone: a soft attack, then a long exponential resonance
+## with upper partials — a "settled, returned to place" ring rather than a flat blip. (顾屿)
+func _bell(freqs: Array, dur: float) -> AudioStreamWAV:
+	var n := int(SR * dur)
+	var data := PackedByteArray()
+	data.resize(n * 2)
+	var amps := [1.0, 0.5, 0.28, 0.16]
+	for i in range(n):
+		var t := float(i) / SR
+		var frac := float(i) / float(n)
+		var env := exp(-frac * 5.0)                 # exponential decay — struck, then rings out
+		var attack := clampf(t / 0.006, 0.0, 1.0)   # ~6ms soft attack — struck, not clicked
+		var s := 0.0
+		for j in freqs.size():
+			var a: float = amps[j] if j < amps.size() else 0.12
+			s += a * sin(TAU * freqs[j] * t)
+		s = (s / 2.0) * env * attack * 0.5
 		data.encode_s16(i * 2, int(clamp(s, -1.0, 1.0) * 32767.0))
 	var w := AudioStreamWAV.new()
 	w.format = AudioStreamWAV.FORMAT_16_BITS

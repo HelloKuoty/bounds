@@ -139,6 +139,7 @@ func setup(b: BoardState, p_taught: Dictionary = {}, p_narration: String = "") -
 	board.territory_cleared.connect(func(): AudioManager.play("clear"))
 	board.territory_failed.connect(func(): AudioManager.play("fail"))
 	board.action_refused.connect(func(_r): AudioManager.play("error"))
+	board.shared.connect(func(_p, _r): AudioManager.play("share"))
 	_rebuild()
 
 
@@ -526,6 +527,7 @@ func _on_split() -> void:
 		_set_hint("得给原束留一些")
 		return
 	board.split_bundle(bid, ids)
+	AudioManager.play("split")   # a distinct "parting" note (split rides bundle's signal otherwise)
 	taught["split"] = true
 	_set_hint("")
 	_rebuild()
@@ -549,6 +551,7 @@ func _on_copy() -> void:
 		_set_hint("再选一样在目标区域里的东西")
 		return
 	board.copy_token(token, target)
+	AudioManager.play("copy")   # a light paper tick (copy has no distinct board signal)
 	taught["copy"] = true
 	_rebuild()
 	_set_hint(G_COPIED)   # name the price: a copy drifts stale (誊本走味)
