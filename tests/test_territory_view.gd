@@ -82,6 +82,29 @@ func test_name_kin_groups_same_name_pieces_for_non_readers() -> void:
 	view.free()
 
 
+func test_clear_overlay_shows_the_territorys_closing_line() -> void:
+	# iter-41 (苏窈 + 马教练): clearing a territory shows ITS OWN closing micro-line under
+	# the stars — a small "咯噔" of order returning, and a wordless replay of the lesson.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board)
+	board.draw_wall(["manifest"])  # solves it → territory_cleared → _on_cleared
+	assert_true(view._overlay.visible, "the clear overlay shows")
+	assert_true(view._overlay_subtext.visible, "the closing line is visible")
+	assert_eq(view._overlay_subtext.text, board.territory_clear_line, "it is this territory's own line")
+	assert_true(view._overlay_subtext.text != "", "and the line isn't empty")
+	view.free()
+
+
+func test_every_territory_carries_a_closing_line() -> void:
+	# iter-41: every authored territory has its own closing line (the generated trial falls
+	# back to a generic one in the view; authored ones must each be written).
+	for tid in TerritoryDatabase.all_ids():
+		var t := TerritoryDatabase.get_territory(tid)
+		assert_true(t.clear_line != "", "%s carries a closing line" % tid)
+
+
 func test_first_lesson_teaches_the_tool_not_the_pieces() -> void:
 	# 去保姆化(iter-25): the first time, the guide teaches what 画界 does + how to
 	# diagnose — but never names which pieces (no "账", no "click this one").

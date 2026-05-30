@@ -25,6 +25,7 @@ func _player_facing_strings() -> Array:
 		out.append(t.name)
 		out.append(t.intro)
 		out.append(t.tagline)
+		out.append(t.clear_line)
 		for p in t.pieces:
 			out.append(p.label)
 			out.append(p.glyph)

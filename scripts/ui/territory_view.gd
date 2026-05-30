@@ -111,6 +111,7 @@ var _status: Label
 var _hint: Label
 var _overlay: Control
 var _overlay_label: Label
+var _overlay_subtext: Label
 var _overlay_btn: Button
 var _overlay_mode := "clear"
 var _built := false
@@ -251,6 +252,13 @@ func _build_chrome() -> void:
 	_overlay_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_overlay_label.add_theme_font_size_override("font_size", 44)
 	obox.add_child(_overlay_label)
+	_overlay_subtext = Label.new()   # closing micro-line (情感 + 复盘), shown under the stars
+	_overlay_subtext.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_overlay_subtext.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_overlay_subtext.custom_minimum_size = Vector2(520, 0)
+	_overlay_subtext.add_theme_font_size_override("font_size", 18)
+	_overlay_subtext.add_theme_color_override("font_color", Color("cdbb92"))
+	obox.add_child(_overlay_subtext)
 	_overlay_btn = Button.new()
 	_overlay_btn.custom_minimum_size = Vector2(160, 44)
 	_overlay_btn.pressed.connect(_on_overlay_btn)
@@ -961,6 +969,10 @@ func _on_cleared() -> void:
 	_overlay_mode = "clear"
 	_overlay_label.text = "%s\n秩序重临 · %s" % ["★".repeat(s), STAR_NAMES.get(s, "净化此地")]
 	_overlay_label.modulate = Color("9fe0a0")
+	# A closing micro-line: the small "咯噔" of order returning, and a wordless replay of
+	# what the move was for. (苏窈 + 马教练, iter-41) Generated trials fall back to a generic line.
+	_overlay_subtext.text = board.territory_clear_line if board.territory_clear_line != "" else "这一片,归位了。"
+	_overlay_subtext.visible = true
 	_overlay_btn.text = "继续 →"
 	_overlay_btn.visible = true
 	_overlay.visible = true
@@ -971,6 +983,7 @@ func _on_failed() -> void:
 	_overlay_mode = "fail"
 	_overlay_label.text = "土地塌陷"
 	_overlay_label.modulate = Color("e08a8a")
+	_overlay_subtext.visible = false   # no closing line on collapse
 	_overlay_btn.text = "重试"
 	_overlay_btn.visible = true
 	_overlay.visible = true

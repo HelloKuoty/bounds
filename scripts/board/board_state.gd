@@ -44,6 +44,7 @@ signal shared(piece_id: String, region: int)
 
 var territory_name := ""   # display strings, kept for the view
 var territory_intro := ""
+var territory_clear_line := ""   # closing micro-line, shown when this territory settles
 var territory_id := ""      # which territory loaded — for star / score bookkeeping
 
 # piece_id -> { id, label, glyph, meaning, kind, region:int, bundle:int }
@@ -92,6 +93,7 @@ func load_territory(t: TerritoryData) -> void:
 	corruption_max = t.corruption_max
 	territory_name = t.name
 	territory_intro = t.intro
+	territory_clear_line = t.clear_line
 	territory_id = t.id
 	clusters = t.clusters.duplicate(true)
 	links = t.links.duplicate(true)

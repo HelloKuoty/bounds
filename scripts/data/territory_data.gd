@@ -5,6 +5,7 @@ var id: String = ""
 var name: String = ""
 var intro: String = ""
 var tagline: String = ""        # one-line promise shown at a branch choice (what this path emphasizes)
+var clear_line: String = ""     # a closing micro-line shown when this territory is settled (情感 + 复盘)
 var concord_target: int = 1   # reach this much order to clear
 var blight_max: int = 30      # rot at/above this collapses the land
 var insight: int = 0          # starting "care" budget for costly actions
@@ -34,6 +35,7 @@ static func from_dict(d: Dictionary) -> TerritoryData:
 	t.name = d.get("name", "")
 	t.intro = d.get("intro", "")
 	t.tagline = d.get("tagline", "")
+	t.clear_line = d.get("clear_line", "")
 	t.concord_target = int(d.get("concord_target", 1))
 	t.blight_max = int(d.get("blight_max", 30))
 	t.insight = int(d.get("insight", 0))
