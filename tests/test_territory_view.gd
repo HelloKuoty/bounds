@@ -182,13 +182,15 @@ func test_copy_lights_up_only_on_a_shortage() -> void:
 
 
 func test_instability_carries_a_non_colour_mark() -> void:
-	# Colour-blind safety: an unstable piece must be distinguishable without colour.
+	# Colour-blind safety: an unstable piece must be distinguishable without colour. The
+	# cue is a procedural ink stain (iter-45), read by spread — not by hue. (周棠)
 	var board := BoardState.new()
 	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
 	var view := TerritoryView.new()
 	view.setup(board, {})
-	assert_true(view._piece_widgets["ledger"].text.begins_with("！"), "unstable piece carries a mark, not only red")
-	assert_false(view._piece_widgets["trader"].text.begins_with("！"), "a stable piece stays unmarked")
+	assert_true(view._piece_widgets["ledger"].get_node_or_null("Stain") != null, "unstable piece carries a non-colour mark (the stain), not only red")
+	assert_true(view._piece_widgets["trader"].get_node_or_null("Stain") == null, "a stable piece stays unmarked")
+	assert_false(view._piece_widgets["ledger"].text.begins_with("！"), "no punctuation mark sits on the glyph")
 	view.free()
 
 
@@ -365,22 +367,25 @@ func test_pang_is_safe_when_detached() -> void:
 
 
 func test_instability_mark_grades_with_danger() -> void:
-	# 周棠(iter-17): severity readable without colour or animation — !/!!/!!! by danger.
+	# 周棠(iter-17 → 顾屿 iter-45): severity readable without colour or animation — the ink
+	# stain deepens in discrete stages (1→2→3) as the land nears collapse.
 	var board := BoardState.new()
 	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
 	var view := TerritoryView.new()
 	view.setup(board, {})
-	var calm: String = view._piece_widgets["ledger"].text
+	board.blight_max = 30
+	board.rot = 0
+	assert_eq(view._severity_level(), 1, "calm land → faintest stain")
+	board.rot = 12  # 0.40
+	assert_eq(view._severity_level(), 2, "creeping rot → mid stain")
 	board.rot = board.blight_max  # at the brink
-	view._rebuild()
-	var dire: String = view._piece_widgets["ledger"].text
-	assert_true(dire.count("！") > calm.count("！"), "more danger → more ! marks (a nameable threshold)")
+	assert_eq(view._severity_level(), 3, "near collapse → heaviest stain")
 	view.free()
 
 
 func test_reduce_motion_holds_pieces_still() -> void:
 	# 周棠(iter-17): a motion-reduction toggle for vestibular-sensitive players; the
-	# static !/!!/!!! marks still carry severity, so nothing is lost by turning it off.
+	# static ink stain still carries severity, so nothing is lost by turning it off.
 	var board := BoardState.new()
 	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
 	var view := TerritoryView.new()

@@ -655,9 +655,10 @@ func _tint(pid: String) -> void:
 	b.modulate = TINT_UNSTABLE
 	if not _unstable_widgets.has(b):
 		_unstable_widgets.append(b)  # the world reacts: this piece will tremble (林晚, iter-09)
-	# graded non-colour cue: !/!!/!!! by how near collapse — a nameable severity that
-	# needs neither colour nor animation to read (周棠, iter-17)
-	b.text = _severity_marks() + _strip_marks(b.text)
+	# graded non-colour cue: an ink "病灶" creeps in from the edges, deeper the nearer
+	# collapse — organic (顾屿) yet still readable without colour OR motion, by how far the
+	# stain has spread (3 discrete stages keep it a nameable severity for 周棠). (iter-45)
+	_apply_stain(b, _severity_level())
 
 
 ## The world reacts to trouble: an unstable piece trembles and breathes — alive and
@@ -674,7 +675,7 @@ func _process(delta: float) -> void:
 				_guide.text = h
 	if _unstable_widgets.is_empty():
 		return
-	if reduce_motion:  # vestibular-safe: hold pieces still; the !/!!/!!! marks carry severity
+	if reduce_motion:  # vestibular-safe: hold pieces still; the static ink stain carries severity
 		for b in _unstable_widgets:
 			if is_instance_valid(b):
 				b.rotation = 0.0
@@ -801,17 +802,57 @@ func _update_herald_viz(delta: float) -> void:
 	_herald_trail.visible = _herald_trail_pts.size() >= 2
 
 
-## Severity as a nameable, colour-free, motion-free mark: !/!!/!!! by how near
-## the land is to collapse. The discrete read周棠 asked for. (iter-17)
-func _severity_marks() -> String:
+## Severity as a nameable, colour-free, motion-free reading: 1/2/3 by how near the land
+## is to collapse. Rendered as a 3-stage ink stain (顾屿's "病灶" in place of !/!!/!!!), it
+## stays readable by SPREAD alone — no colour, no motion needed. (周棠 iter-17 → 顾屿 iter-45)
+func _severity_level() -> int:
 	if board == null or board.blight_max <= 0:
-		return "！"
+		return 1
 	var r := float(board.rot) / float(board.blight_max)
 	if r >= 0.66:
-		return "！！！"
+		return 3
 	elif r >= 0.33:
-		return "！！"
-	return "！"
+		return 2
+	return 1
+
+
+## A procedural ink stain that creeps in from the edges — clear centre so the name still
+## reads, darker and wider the higher the severity. No asset files; ships on the web. (顾屿)
+func _make_stain_tex(level: int) -> GradientTexture2D:
+	var starts := {1: 0.82, 2: 0.60, 3: 0.36}   # where the ink begins creeping inward
+	var alphas := {1: 0.5, 2: 0.66, 3: 0.82}     # how dark it gets at the rim
+	var start: float = starts.get(level, 0.6)
+	var a: float = alphas.get(level, 0.66)
+	var g := Gradient.new()
+	g.offsets = PackedFloat32Array([0.0, start, 1.0])
+	g.colors = PackedColorArray([
+		Color(0.10, 0.05, 0.05, 0.0),
+		Color(0.10, 0.05, 0.05, 0.0),
+		Color(0.10, 0.05, 0.05, a),
+	])
+	var tex := GradientTexture2D.new()
+	tex.gradient = g
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(1.04, 0.5)
+	tex.width = 64
+	tex.height = 64
+	return tex
+
+
+## Lay (or deepen) the stain over a piece. Clear centre keeps the glyph legible; the
+## overlay ignores the mouse so it never eats a click.
+func _apply_stain(b: Button, level: int) -> void:
+	var old := b.get_node_or_null("Stain")
+	if old != null:
+		old.free()
+	var stain := TextureRect.new()
+	stain.name = "Stain"
+	stain.texture = _make_stain_tex(level)
+	stain.set_anchors_preset(Control.PRESET_FULL_RECT)
+	stain.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stain.stretch_mode = TextureRect.STRETCH_SCALE
+	b.add_child(stain)
 
 
 func _strip_marks(t: String) -> String:
