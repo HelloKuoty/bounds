@@ -295,6 +295,22 @@
         {"id": "sn_one_sutra", "label": "一堂经", "members": ["sn_s1", "sn_s2", "sn_s3"]},
         {"id": "sn_one_incense", "label": "一炉香", "members": ["sn_i1", "sn_i2"]}
       ]
+    },
+    {
+      "id": "stele_yard",
+      "name": "碑院",
+      "tagline": "碑石挪不动,绕它分别处",
+      "intro": "院里两样东西挪不得 —— 一通祖碑、一口古钟,都生了根。偏有招牌、座钟与它们同名异意;碑、钟动不得,只好把别的分出去。",
+      "clear_line": "碑钟生了根,便画界把招牌、座钟分出去 —— 挪不动的,就绕着它理。",
+      "concord_target": 2,
+      "blight_max": 30,
+      "insight": 3,
+      "pieces": [
+        {"id": "sy_stele", "label": "祖庙的碑", "glyph": "名", "meaning": "sy_ancestor", "kind": "living", "fixed": true},
+        {"id": "sy_sign", "label": "店家的招牌", "glyph": "名", "meaning": "sy_shop", "kind": "living"},
+        {"id": "sy_oldbell", "label": "古庙的钟", "glyph": "钟", "meaning": "sy_temple", "kind": "living", "fixed": true},
+        {"id": "sy_clock", "label": "厅上的座钟", "glyph": "钟", "meaning": "sy_mantel", "kind": "living"}
+      ]
     }
   ]
 }

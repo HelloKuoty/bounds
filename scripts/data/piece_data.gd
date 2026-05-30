@@ -12,6 +12,7 @@ var glyph: String = ""    # the visible symbol/word it carries
 var meaning: String = ""  # the true meaning (drives instability; semantic key)
 var kind: String = "living"  # "living" | "token"
 var corrupt: bool = false  # starts already rotten (only meaningful in spreading territories)
+var fixed: bool = false    # 固/锚: can't be moved by a wall — you must carve the OTHERS around it (iter-53)
 
 
 static func from_dict(d: Dictionary) -> PieceData:
@@ -22,6 +23,7 @@ static func from_dict(d: Dictionary) -> PieceData:
 	p.meaning = d.get("meaning", "")
 	p.kind = d.get("kind", "living")
 	p.corrupt = bool(d.get("corrupt", false))
+	p.fixed = bool(d.get("fixed", false))
 	return p
 
 

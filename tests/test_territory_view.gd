@@ -149,6 +149,20 @@ func test_herald_thread_runs_warm_when_whole_cool_when_severed() -> void:
 	view.free()
 
 
+func test_fixed_pieces_refuse_to_move_and_force_walling_the_others() -> void:
+	# iter-53 (深度 · 加厚词库): some pieces are 固/锚 — a wall can't move them, so you must
+	# carve the OTHERS around them. 碑院 has a fixed stele + bell, each name-clashing with a
+	# movable piece; the only solution is to wall the movable ones away.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("stele_yard"))
+	assert_eq(board.draw_wall(["sy_stele"]), -1, "a fixed piece (the stele) can't be walled away")
+	assert_eq(board.draw_wall(["sy_oldbell"]), -1, "the old bell is fixed too")
+	assert_false(board.cleared, "the refused moves changed nothing")
+	board.draw_wall(["sy_sign"])   # wall the movable signboard out of the stele's region
+	board.draw_wall(["sy_clock"])  # and the movable clock out of the old bell's region
+	assert_true(board.cleared, "walling the movable pieces around the fixed ones settles 碑院")
+
+
 func test_one_fumble_stays_quiet_a_second_in_a_row_surfaces_the_hint() -> void:
 	# iter-46 (林晚): a single fumbled move is just trial-and-error (the puzzle itself), so
 	# stay quiet; only a SECOND no-progress move in a row surfaces the type-hint (小鹿's net,

@@ -67,11 +67,18 @@ func _auto_solve(board: BoardState) -> bool:
 		var inst: Dictionary = insts[0]
 		match inst["type"]:
 			"name_overload":
+				# keep a FIXED piece's meaning if one is in the clash (it can't be moved);
+				# move only the non-fixed pieces of the other meanings. (iter-53)
 				var keep = inst["meanings"][0]
+				for pid in board.pieces:
+					var pf: Dictionary = board.pieces[pid]
+					if pf["region"] == inst["region"] and pf["glyph"] == inst["glyph"] and pf.get("fixed", false):
+						keep = pf["meaning"]
+						break
 				var move_ids: Array = []
 				for pid in board.pieces:
 					var p: Dictionary = board.pieces[pid]
-					if p["region"] == inst["region"] and p["glyph"] == inst["glyph"] and p["meaning"] != keep:
+					if p["region"] == inst["region"] and p["glyph"] == inst["glyph"] and p["meaning"] != keep and not p.get("fixed", false):
 						move_ids.append(pid)
 				if move_ids.is_empty():
 					return false

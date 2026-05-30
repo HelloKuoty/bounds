@@ -421,6 +421,16 @@ func _make_piece_button(pid: String) -> Button:
 	btn.icon = _meaning_icon(p["meaning"])  # the essence badge — read the board, not the glyphs
 	btn.add_theme_constant_override("h_separation", 5)
 	btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	if p.get("fixed", false):
+		# 固/锚: a small stone rivet marks a piece that won't move — you carve around it. The
+		# cue is a shape in the corner, not a colour, so it survives colour-blind play. (iter-53)
+		var stud := ColorRect.new()
+		stud.color = Color("6b6256")
+		stud.custom_minimum_size = Vector2(9, 9)
+		stud.size = Vector2(9, 9)
+		stud.position = Vector2(5, 5)
+		stud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		btn.add_child(stud)
 	btn.toggled.connect(_on_piece_toggled.bind(pid))
 	return btn
 

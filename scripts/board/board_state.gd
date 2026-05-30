@@ -106,7 +106,7 @@ func load_territory(t: TerritoryData) -> void:
 		pieces[p.id] = {
 			"id": p.id, "label": p.label, "glyph": p.glyph,
 			"meaning": p.meaning, "kind": p.kind,
-			"region": FIELD_REGION, "bundle": -1, "corrupted": p.corrupt,
+			"region": FIELD_REGION, "bundle": -1, "corrupted": p.corrupt, "fixed": p.fixed,
 		}
 		piece_placed.emit(p.id, FIELD_REGION)
 
@@ -202,6 +202,10 @@ func draw_wall(piece_ids: Array, new_region_name: String = "") -> int:
 	if insight < ACTION_COST:
 		action_refused.emit("insight")
 		return -1
+	for pid in piece_ids:
+		if pieces.has(pid) and pieces[pid].get("fixed", false):
+			action_refused.emit("fixed")   # 固/锚 pieces won't move — carve the others around them
+			return -1
 	var before := instabilities().size()
 	var rid := _next_region
 	_next_region += 1

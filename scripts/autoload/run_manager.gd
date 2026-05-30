@@ -17,6 +17,7 @@ const BRANCH_POOL := [
 	{"type": "sanctum", "terr": "the_sanctum"},   # 静室:散物满堂,逐一成束
 	{"type": "territory", "terr": "scroll_bond"}, # 契卷堂:卷页待收,先束后通
 	{"type": "territory", "terr": "two_names"},   # 名障镇:名会骗人,认形莫认名
+	{"type": "territory", "terr": "stele_yard"},  # 碑院:碑石挪不动,绕它分别处(固/锚棋)
 ]
 const PLAN := [
 	[{"type": "territory", "terr": "the_crossing"}],        # 学:画界
@@ -55,7 +56,7 @@ func generate_map(_province_id: String = "province_1") -> void:
 		var tmp = pool[k]
 		pool[k] = pool[m]
 		pool[m] = tmp
-	var per_branch: int = pool.size() / 2
+	var per_branch: int = (pool.size() + 1) / 2   # ceil — an odd pool deals the extra to the first layer
 	var branch_layers: Array = [pool.slice(0, per_branch), pool.slice(per_branch, pool.size())]
 	var bi := 0
 	var prev: Array = []
