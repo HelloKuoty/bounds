@@ -786,6 +786,14 @@ func _herald_hide() -> void:
 
 ## Draw the chain as a thread, run a glowing (trailing) signal along the part it can
 ## reach, mark the break with a ✕. The new "ripple" feel + a where-to-bridge cue.
+## Is the current 令 flowing whole (warm) or severed (cool)? Drives the thread/dot 色温
+## so success and failure read as opposite temperatures, not just a ✕. (顾屿, iter-52)
+func _herald_thread_warm() -> bool:
+	if board == null or board.heralds.is_empty():
+		return true
+	return _herald_break_pair(board.heralds[0]["chain"]).is_empty()
+
+
 func _update_herald_viz(delta: float) -> void:
 	if _herald_line == null:
 		return
@@ -805,6 +813,11 @@ func _update_herald_viz(delta: float) -> void:
 	_herald_line.visible = true
 	# mark the break with a ✕ between the two pieces the 令 can't cross (林晚: 看得见为什么停)
 	var brk := _herald_break_pair(chain)
+	# 成败色温对称 (顾屿, iter-52): a 令 flowing whole glows WARM gold; a severed thread cools
+	# to blue — and warms back the instant a translator reconnects it.
+	var warm: bool = brk.is_empty()
+	_herald_line.default_color = Color(0.95, 0.85, 0.55, 0.5) if warm else Color(0.55, 0.70, 0.86, 0.45)
+	_herald_dot.color = Color(1.0, 0.96, 0.74) if warm else Color(0.76, 0.87, 1.0)
 	if brk.size() == 2 and _piece_widgets.has(brk[0]) and _piece_widgets.has(brk[1]):
 		var ba: Button = _piece_widgets[brk[0]]
 		var bb: Button = _piece_widgets[brk[1]]

@@ -134,6 +134,21 @@ func test_settle_breath_dips_then_returns_to_rest() -> void:
 	view.free()
 
 
+func test_herald_thread_runs_warm_when_whole_cool_when_severed() -> void:
+	# iter-52 (顾屿): the 令's thread/dot glows WARM while the relay flows whole, cools when a
+	# wall severs it, and warms back the moment a translator reconnects it (成败色温对称).
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("herald_house"))
+	var view := TerritoryView.new()
+	view.setup(board)
+	assert_true(view._herald_thread_warm(), "the intact relay runs warm")
+	board.draw_wall(["answer"])  # split the 钟 clash → severs the relay
+	assert_false(view._herald_thread_warm(), "a severed thread cools")
+	board.place_translator(board.region_of("courier"), board.region_of("answer"))
+	assert_true(view._herald_thread_warm(), "reconnecting it warms it back")
+	view.free()
+
+
 func test_one_fumble_stays_quiet_a_second_in_a_row_surfaces_the_hint() -> void:
 	# iter-46 (林晚): a single fumbled move is just trial-and-error (the puzzle itself), so
 	# stay quiet; only a SECOND no-progress move in a row surfaces the type-hint (小鹿's net,
