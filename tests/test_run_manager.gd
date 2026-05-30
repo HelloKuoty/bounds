@@ -116,6 +116,39 @@ func test_new_branch_territories_are_well_formed() -> void:
 		assert_eq(board.instabilities().size(), t.concord_target, "%s: concord target == initial troubles" % tid)
 
 
+func test_branch_layout_varies_with_the_run_seed_but_reproduces() -> void:
+	# iter-50 (K哥/小鹿): the branch territories are dealt from a shared pool by the run
+	# seed — so different runs face a different branch arrangement (the run's NON-teaching
+	# shape changes on replay), while the same seed reproduces the same map (fair retry).
+	var sigs := {}
+	for s in [1, 2, 3, 7, 42, 111, 999, 12345]:
+		GameState.run_seed = s
+		RunManager.generate_map()
+		sigs[_branch_signature()] = true
+	assert_true(sigs.size() >= 2, "branch arrangement varies across run seeds (got %d distinct)" % sigs.size())
+	GameState.run_seed = 42
+	RunManager.generate_map()
+	var first := _branch_signature()
+	GameState.run_seed = 42
+	RunManager.generate_map()
+	assert_eq(_branch_signature(), first, "same run seed → same branch arrangement (fair retry)")
+
+
+func _branch_signature() -> String:
+	var count_by_layer := {}
+	for id in RunManager.nodes:
+		var ly: int = RunManager.node(id)["layer"]
+		count_by_layer[ly] = int(count_by_layer.get(ly, 0)) + 1
+	var ids := RunManager.nodes.keys()
+	ids.sort()
+	var sig: Array = []
+	for id in ids:
+		var n := RunManager.node(id)
+		if count_by_layer[n["layer"]] > 1:   # a branch (multi-node) layer
+			sig.append(n["territory_id"])
+	return ",".join(sig)
+
+
 func _count_paths(id: String, memo: Dictionary) -> int:
 	if id == RunManager.boss_id:
 		return 1
