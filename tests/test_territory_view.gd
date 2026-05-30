@@ -105,6 +105,20 @@ func test_every_territory_carries_a_closing_line() -> void:
 		assert_true(t.clear_line != "", "%s carries a closing line" % tid)
 
 
+func test_every_closing_line_names_the_craft_not_only_the_moral() -> void:
+	# iter-47 (马教练): each closing line weaves in the METHOD (the verb used), not only the
+	# moral — so a player carries away 手之法 (a transferable move), not just a maxim.
+	var verbs := ["界", "束", "拆", "译者石", "誊", "共享"]
+	for tid in TerritoryDatabase.all_ids():
+		var line: String = TerritoryDatabase.get_territory(tid).clear_line
+		var names_craft := false
+		for v in verbs:
+			if v in line:
+				names_craft = true
+				break
+		assert_true(names_craft, "%s closing line names the craft (a verb), not just the moral: '%s'" % [tid, line])
+
+
 func test_one_fumble_stays_quiet_a_second_in_a_row_surfaces_the_hint() -> void:
 	# iter-46 (林晚): a single fumbled move is just trial-and-error (the puzzle itself), so
 	# stay quiet; only a SECOND no-progress move in a row surfaces the type-hint (小鹿's net,
