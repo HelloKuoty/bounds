@@ -119,3 +119,19 @@ func test_gamestate_keeps_the_best_stars() -> void:
 	GameState.record_stars("the_crossing", 3)  # a better run — taken
 	assert_eq(int(GameState.best_stars["the_crossing"]), 3, "improves on a better run")
 	GameState.best_stars.clear()  # reset for other tests
+
+
+func test_herald_chain_severs_then_bridges() -> void:
+	# iter-31 传令链: a 令 must relay end to end. Walling the 钟 clash apart cuts the
+	# relay on the new border — bridge it with a translator so the signal carries.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("herald_house"))
+	assert_eq(board.instabilities().size(), 1, "starts with just the 钟 clash; the relay is intact")
+	var r := board.draw_wall(["answer"])  # fix the clash — but it severs the relay at the border
+	var types := {}
+	for inst in board.instabilities():
+		types[inst["type"]] = true
+	assert_true(types.has("severed_chain"), "walling the relay apart severs the herald")
+	assert_false(board.cleared, "a severed relay isn't done — the 令 can't reach the end")
+	board.place_translator(BoardState.FIELD_REGION, r)  # bridge the break → the 令 carries again
+	assert_true(board.cleared, "bridging the severed relay clears it")

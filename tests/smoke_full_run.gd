@@ -134,9 +134,30 @@ func _auto_solve(board: BoardState) -> bool:
 				if clean.is_empty():
 					return false
 				board.draw_wall(clean)
+			"severed_chain":
+				var hh := _herald(board, inst["herald"])
+				if hh.is_empty():
+					return false
+				var acted := false
+				var hchain: Array = hh["chain"]
+				for ci in range(hchain.size() - 1):
+					var ha: String = hchain[ci]
+					var hb: String = hchain[ci + 1]
+					if board.pieces.has(ha) and board.pieces.has(hb) and board.region_of(ha) != board.region_of(hb):
+						board.place_translator(board.region_of(ha), board.region_of(hb))
+						acted = true
+				if not acted:
+					return false
 			_:
 				return false
 	return board.cleared
+
+
+func _herald(board: BoardState, hid: String) -> Dictionary:
+	for h in board.heralds:
+		if h["id"] == hid:
+			return h
+	return {}
 
 
 func _cluster_members(board: BoardState, cid: String) -> Array:

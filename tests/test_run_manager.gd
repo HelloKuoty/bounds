@@ -59,7 +59,7 @@ func test_teaching_is_a_forced_backbone() -> void:
 			var terr: String = RunManager.node(by_layer[ly][0])["territory_id"]
 			if terr != "":
 				forced[terr] = true
-	for must in ["the_crossing", "the_counting_house", "the_archive", "the_two_tongues", "two_markets", "shared_well", "the_seep"]:
+	for must in ["the_crossing", "the_counting_house", "the_archive", "the_two_tongues", "two_markets", "shared_well", "the_seep", "herald_house"]:
 		assert_true(forced.has(must), "%s sits on the forced teaching backbone (unskippable)" % must)
 
 

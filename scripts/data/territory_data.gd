@@ -21,6 +21,10 @@ var links: Array = []
 # holds `anchor` must contain a (non-stale) token of this glyph+meaning, else it
 # runs short. Tokens can be copied to satisfy demands; living things cannot.
 var demands: Array = []
+# Declared heralds: each { id, label, chain:Array[piece_id] }. A signal must relay
+# along the chain end to end; a consecutive pair split across a border with no
+# translator severs it (a "severed_chain"). The unused board herald engine, surfaced.
+var heralds: Array = []
 
 
 static func from_dict(d: Dictionary) -> TerritoryData:
@@ -39,4 +43,5 @@ static func from_dict(d: Dictionary) -> TerritoryData:
 	t.clusters = d.get("clusters", [])
 	t.links = d.get("links", [])
 	t.demands = d.get("demands", [])
+	t.heralds = d.get("heralds", [])
 	return t

@@ -195,6 +195,22 @@
       ]
     },
     {
+      "id": "herald_house",
+      "name": "传令所",
+      "intro": "一道令要顺着信使一环环传到头。可这里两样都唤作「钟」、意各不同,须分开 —— 一分开,传令的链子也断在了界上。在断处架座译者石,让令接着传过去。",
+      "concord_target": 1,
+      "blight_max": 30,
+      "insight": 3,
+      "pieces": [
+        {"id": "summon", "label": "起令的钟", "glyph": "钟", "meaning": "bell_summon", "kind": "living"},
+        {"id": "courier", "label": "传令的信使", "glyph": "信", "meaning": "courier", "kind": "living"},
+        {"id": "answer", "label": "应令的钟", "glyph": "钟", "meaning": "bell_answer", "kind": "living"}
+      ],
+      "heralds": [
+        {"id": "the_decree", "label": "这道令", "chain": ["summon", "courier", "answer"]}
+      ]
+    },
+    {
       "id": "the_sprawl",
       "name": "蔓沼",
       "intro": "墙塌了,名混了,万物正渗成一摊烂泥。趁它还剩一点形状,重新切开。",

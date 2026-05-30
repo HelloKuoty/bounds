@@ -53,6 +53,7 @@ var bundles: Dictionary = {}       # bundle_id -> { id, guardian:String, members
 var clusters: Array = []           # [{ id, label, members:Array }] from the territory
 var links: Array = []              # [{ id, label, a, b }] pieces that must communicate
 var demands: Array = []            # [{ id, anchor, glyph, meaning }] a region needs this token-value
+var heralds: Array = []            # [{ id, label, chain:Array }] a signal must relay end to end
 var translators: Array = []        # sorted [r1, r2] region pairs that have a translator
 var _next_region := 1
 var _next_bundle := 1
@@ -95,6 +96,7 @@ func load_territory(t: TerritoryData) -> void:
 	clusters = t.clusters.duplicate(true)
 	links = t.links.duplicate(true)
 	demands = t.demands.duplicate(true)
+	heralds = t.heralds.duplicate(true)
 	translators.clear()
 	_subs.clear()
 	_next_copy = 1
@@ -164,6 +166,18 @@ func instabilities() -> Array:
 				break
 		if not met:
 			out.append({"type": "shortage", "demand": d["id"]})
+	# severed_chain: a relay (herald) whose signal can't cross a border — a
+	# consecutive pair split across regions with no translator to carry it across.
+	for hd in heralds:
+		var hchain: Array = hd["chain"]
+		for hi in range(hchain.size() - 1):
+			var ha: String = hchain[hi]
+			var hb: String = hchain[hi + 1]
+			if not pieces.has(ha) or not pieces.has(hb):
+				continue
+			if pieces[ha]["region"] != pieces[hb]["region"] and not _has_translator(pieces[ha]["region"], pieces[hb]["region"]):
+				out.append({"type": "severed_chain", "herald": hd["id"]})
+				break
 	# exposed: in a spreading land, a clean piece sharing a region with a corrupted
 	# one is in danger — wall it away before the rot reaches it.
 	if spreading:
