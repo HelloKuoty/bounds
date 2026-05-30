@@ -51,6 +51,21 @@ func test_clear_shows_continue_and_emits() -> void:
 	view.free()
 
 
+func test_stuck_hint_names_the_trouble_not_the_pieces() -> void:
+	# 阿May(iter-36): after a stretch with no progress (_process tracks _idle_t past
+	# STUCK_SECS), the de-hand-hold guide softens to a TYPE hint — it names the trouble
+	# and the fix verb, but never which pieces, and disappears once the board is settled.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board)
+	assert_eq(view._stuck_hint_text(), TerritoryView.G_HINT_WALL, "name-clash → the wall hint")
+	assert_false("账" in view._stuck_hint_text(), "the hint never names which pieces (the 账 glyph)")
+	board.draw_wall(["manifest"])  # solves it
+	assert_eq(view._stuck_hint_text(), "", "no stuck hint once the board is settled")
+	view.free()
+
+
 func test_first_lesson_teaches_the_tool_not_the_pieces() -> void:
 	# 去保姆化(iter-25): the first time, the guide teaches what 画界 does + how to
 	# diagnose — but never names which pieces (no "账", no "click this one").

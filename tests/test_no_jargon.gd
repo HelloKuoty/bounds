@@ -35,6 +35,9 @@ func _player_facing_strings() -> Array:
 		TerritoryView.G_TEACH_WALL, TerritoryView.G_TEACH_BUNDLE, TerritoryView.G_TEACH_SPLIT,
 		TerritoryView.G_TEACH_TRANSLATOR, TerritoryView.G_TEACH_SHORTAGE, TerritoryView.G_TEACH_EXPOSED,
 		TerritoryView.G_TEACH_HERALD,
+		TerritoryView.G_HINT_WALL, TerritoryView.G_HINT_BUNDLE, TerritoryView.G_HINT_SPLIT,
+		TerritoryView.G_HINT_TRANSLATOR, TerritoryView.G_HINT_HERALD, TerritoryView.G_HINT_SHORTAGE,
+		TerritoryView.G_HINT_EXPOSED,
 		TerritoryView.G_LOOK, TerritoryView.G_SETTLED, TerritoryView.G_CLEARED,
 	]:
 		out.append(s)
