@@ -97,6 +97,7 @@ var _herald_trail: Line2D            # comet tail behind the signal (顾屿, ite
 var _herald_break_mark: Label        # ✕ where the 令 can't cross (林晚, iter-35)
 var _herald_trail_pts: Array = []
 var _idle_t := 0.0                   # seconds since last progress; drives the stuck hint (阿May, iter-36)
+var _prev_inst := -1                 # trouble count before the last move; a non-reducing move surfaces the hint (小鹿, iter-42)
 var _title: Label
 var _intro: Label
 var _narration: Label
@@ -236,6 +237,10 @@ func _build_chrome() -> void:
 	_herald_break_mark = Label.new()
 	_herald_break_mark.text = "✕"
 	_herald_break_mark.add_theme_color_override("font_color", Color(1.0, 0.5, 0.45))
+	# A dark outline makes the ✕ shape unmistakable on any background — the break reads by
+	# SHAPE, not by its red hue, so a colour-blind player isn't relying on "the red one". (周棠, iter-42)
+	_herald_break_mark.add_theme_color_override("font_outline_color", Color(0.05, 0.04, 0.03))
+	_herald_break_mark.add_theme_constant_override("outline_size", 5)
 	_herald_break_mark.add_theme_font_size_override("font_size", 22)
 	_herald_break_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_herald_break_mark.visible = false
@@ -343,6 +348,16 @@ func _rebuild() -> void:
 	_highlight_instabilities()
 	_update_guide()
 	_update_verb_buttons()
+	# 小鹿(iter-42): a move that didn't reduce the trouble count — a real fumble OR a legit
+	# setup step (wall-before-bridge, bundle-before-split) — surfaces the type-hint at once,
+	# instead of making a stuck player wait out the 30s idle clock. Harmless either way: the
+	# hint only ever names the KIND of trouble + the verb, never which pieces.
+	var now_inst := board.instabilities().size()
+	if _prev_inst >= 0 and now_inst >= _prev_inst and not board.cleared:
+		var fumble_hint := _stuck_hint_text()
+		if fumble_hint != "":
+			_guide.text = fumble_hint
+	_prev_inst = now_inst
 
 
 func _build_region_panel(region: int, piece_ids: Array) -> Control:

@@ -105,6 +105,33 @@ func test_every_territory_carries_a_closing_line() -> void:
 		assert_true(t.clear_line != "", "%s carries a closing line" % tid)
 
 
+func test_a_fumbled_move_surfaces_the_hint_without_waiting() -> void:
+	# iter-42 (小鹿): a move that fails to reduce the trouble count surfaces the type-hint
+	# at once — a stuck player shouldn't have to wait out the 30s idle clock.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board)
+	# a useless wall (the lone trader) leaves the 账 name-clash unresolved — a fumble.
+	board.draw_wall(["trader"])
+	view._rebuild()
+	assert_eq(view._guide.text, TerritoryView.G_HINT_WALL, "a non-reducing move surfaces the hint at once")
+	view.free()
+
+
+func test_a_real_move_does_not_trigger_the_fumble_hint() -> void:
+	# Control: a move that actually resolves the trouble must NOT read as a fumble.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("the_crossing"))
+	var view := TerritoryView.new()
+	view.setup(board)
+	board.draw_wall(["manifest"])  # resolves the clash → cleared
+	view._rebuild()
+	assert_true(board.cleared, "the move solved it")
+	assert_eq(view._guide.text, TerritoryView.G_CLEARED, "the cleared line shows, not a stuck hint")
+	view.free()
+
+
 func test_first_lesson_teaches_the_tool_not_the_pieces() -> void:
 	# 去保姆化(iter-25): the first time, the guide teaches what 画界 does + how to
 	# diagnose — but never names which pieces (no "账", no "click this one").
