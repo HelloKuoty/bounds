@@ -354,6 +354,24 @@ func test_herald_signal_reach_stops_at_a_break() -> void:
 	view.free()
 
 
+func test_herald_break_pair_points_at_the_severed_hop() -> void:
+	# iter-35: the ✕ marks the two pieces the 令 can't cross — the break is the
+	# player's own wall, so it's a consequence cue, not a spoiler.
+	var board := BoardState.new()
+	board.load_territory(TerritoryDatabase.get_territory("herald_house"))
+	var view := TerritoryView.new()
+	view.setup(board, {})
+	var chain: Array = board.heralds[0]["chain"]
+	assert_eq(view._herald_break_pair(chain).size(), 0, "intact relay has no break to mark")
+	var r := board.draw_wall(["answer"])
+	view._rebuild()
+	assert_eq(view._herald_break_pair(chain), ["courier", "answer"], "the break is the hop the wall cut")
+	board.place_translator(BoardState.FIELD_REGION, r)
+	view._rebuild()
+	assert_eq(view._herald_break_pair(chain).size(), 0, "bridged → no break")
+	view.free()
+
+
 func test_parchment_shader_loads() -> void:
 	# 顾屿(iter-16): the backdrop is procedural parchment (a shader, no texture asset).
 	# (Visual result needs a real GPU; this proves the resource loads & wires up.)

@@ -78,6 +78,9 @@ var _shake_tween: Tween
 var _herald_line: Line2D             # the thread a 令 runs along (传令链, iter-32)
 var _herald_dot: ColorRect           # the travelling signal; stops at a break
 var _herald_t := 0.0
+var _herald_trail: Line2D            # comet tail behind the signal (顾屿, iter-35)
+var _herald_break_mark: Label        # ✕ where the 令 can't cross (林晚, iter-35)
+var _herald_trail_pts: Array = []
 var _title: Label
 var _intro: Label
 var _narration: Label
@@ -199,12 +202,27 @@ func _build_chrome() -> void:
 	_herald_line.default_color = Color(0.95, 0.85, 0.55, 0.5)
 	_herald_line.visible = false
 	add_child(_herald_line)
+	_herald_trail = Line2D.new()
+	_herald_trail.width = 7.0
+	var tgrad := Gradient.new()
+	tgrad.offsets = PackedFloat32Array([0.0, 1.0])
+	tgrad.colors = PackedColorArray([Color(1.0, 0.95, 0.7, 0.0), Color(1.0, 0.95, 0.7, 0.7)])
+	_herald_trail.gradient = tgrad
+	_herald_trail.visible = false
+	add_child(_herald_trail)
 	_herald_dot = ColorRect.new()
 	_herald_dot.color = Color(1.0, 0.96, 0.74)
 	_herald_dot.size = Vector2(12, 12)
 	_herald_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_herald_dot.visible = false
 	add_child(_herald_dot)
+	_herald_break_mark = Label.new()
+	_herald_break_mark.text = "✕"
+	_herald_break_mark.add_theme_color_override("font_color", Color(1.0, 0.5, 0.45))
+	_herald_break_mark.add_theme_font_size_override("font_size", 22)
+	_herald_break_mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_herald_break_mark.visible = false
+	add_child(_herald_break_mark)
 
 	_overlay = CenterContainer.new()
 	_overlay.set_anchors_preset(PRESET_FULL_RECT)
@@ -630,14 +648,40 @@ func _herald_reach(chain: Array) -> int:
 	return reach
 
 
-## Draw the chain as a thread and run a glowing signal along the part it can reach —
-## it visibly stops at the break (both the new "ripple" feel and a where-to-bridge cue).
+## The two pieces flanking the first break in a chain ([before, after]), or [] if the
+## 令 carries to the end. The break is the player's OWN wall, so marking it is a
+## consequence cue ("your 界 blocks the 令 here, bridge it"), not a spoiler. (iter-35)
+func _herald_break_pair(chain: Array) -> Array:
+	for i in range(chain.size() - 1):
+		var a: String = chain[i]
+		var b: String = chain[i + 1]
+		if not board.pieces.has(a) or not board.pieces.has(b):
+			continue
+		var ra: int = board.region_of(a)
+		var rb: int = board.region_of(b)
+		if ra != rb and not board.bridged(ra, rb):
+			return [a, b]
+	return []
+
+
+func _herald_hide() -> void:
+	if _herald_line != null:
+		_herald_line.visible = false
+	if _herald_dot != null:
+		_herald_dot.visible = false
+	if _herald_trail != null:
+		_herald_trail.visible = false
+	if _herald_break_mark != null:
+		_herald_break_mark.visible = false
+
+
+## Draw the chain as a thread, run a glowing (trailing) signal along the part it can
+## reach, mark the break with a ✕. The new "ripple" feel + a where-to-bridge cue.
 func _update_herald_viz(delta: float) -> void:
 	if _herald_line == null:
 		return
 	if board == null or board.heralds.is_empty() or not is_inside_tree():
-		_herald_line.visible = false
-		_herald_dot.visible = false
+		_herald_hide()
 		return
 	var chain: Array = board.heralds[0]["chain"]
 	var pts: Array = []
@@ -646,13 +690,23 @@ func _update_herald_viz(delta: float) -> void:
 			var b: Button = _piece_widgets[pid]
 			pts.append(b.global_position + b.size * 0.5)
 	if pts.size() < 2:
-		_herald_line.visible = false
-		_herald_dot.visible = false
+		_herald_hide()
 		return
 	_herald_line.points = PackedVector2Array(pts)
 	_herald_line.visible = true
+	# mark the break with a ✕ between the two pieces the 令 can't cross (林晚: 看得见为什么停)
+	var brk := _herald_break_pair(chain)
+	if brk.size() == 2 and _piece_widgets.has(brk[0]) and _piece_widgets.has(brk[1]):
+		var ba: Button = _piece_widgets[brk[0]]
+		var bb: Button = _piece_widgets[brk[1]]
+		var mid: Vector2 = (ba.global_position + ba.size * 0.5 + bb.global_position + bb.size * 0.5) * 0.5
+		_herald_break_mark.global_position = mid - _herald_break_mark.size * 0.5
+		_herald_break_mark.visible = true
+	else:
+		_herald_break_mark.visible = false
 	if reduce_motion:
 		_herald_dot.visible = false
+		_herald_trail.visible = false
 		return
 	var reach: int = _herald_reach(chain)
 	_herald_t += delta * 0.9
@@ -662,6 +716,11 @@ func _update_herald_viz(delta: float) -> void:
 	var p: Vector2 = (pts[idx] as Vector2).lerp(pts[idx + 1] as Vector2, u - float(idx))
 	_herald_dot.global_position = p - _herald_dot.size * 0.5
 	_herald_dot.visible = true
+	_herald_trail_pts.append(p)  # comet trail (顾屿): a fading tail behind the signal
+	while _herald_trail_pts.size() > 8:
+		_herald_trail_pts.pop_front()
+	_herald_trail.points = PackedVector2Array(_herald_trail_pts)
+	_herald_trail.visible = _herald_trail_pts.size() >= 2
 
 
 ## Severity as a nameable, colour-free, motion-free mark: !/!!/!!! by how near
